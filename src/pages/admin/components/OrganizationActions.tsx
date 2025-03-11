@@ -5,6 +5,8 @@ import { Organization } from "@/types/organization";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { LogIn } from "lucide-react";
 
 interface OrganizationActionsProps {
   organization: Organization;
@@ -12,6 +14,12 @@ interface OrganizationActionsProps {
 }
 
 export function OrganizationActions({ organization, onToggleBlock }: OrganizationActionsProps) {
+  const navigate = useNavigate();
+
+  const handleImpersonate = () => {
+    navigate(`/admin/impersonate/${organization.id}`);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -29,8 +37,13 @@ export function OrganizationActions({ organization, onToggleBlock }: Organizatio
                 Enviar Email
               </Button>
               
-              <Button variant="outline" className="w-full">
-                Acessar como Admin
+              <Button 
+                variant="outline" 
+                className="w-full flex items-center gap-2" 
+                onClick={handleImpersonate}
+              >
+                <LogIn className="h-4 w-4" />
+                Acessar como Empresa
               </Button>
               
               <Button variant={organization.blocked ? "default" : "destructive"} className="w-full" onClick={onToggleBlock}>

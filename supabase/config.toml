@@ -1,1 +1,8 @@
+
 project_id = "wrlctaztackhwlugitpd"
+
+[functions.impersonate-organization]
+verify_jwt = true
+
+[functions.end-impersonation]
+verify_jwt = true

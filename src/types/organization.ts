@@ -13,6 +13,7 @@ export interface Organization {
   gateway: 'mercadopago' | 'asaas';
   isAdmin: boolean;
   blocked: boolean;
+  subscriptionExpiringSoon?: boolean;
 }
 
 export interface User {
