@@ -77,21 +77,23 @@ export default function AdminOrganizationDetail() {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Fix type issues by using the correct type annotations for our RPC calls
-      // We need to use any here because the Supabase TypeScript types don't know about our custom RPCs
-      const { data: customersCount, error: customersError } = await supabase.rpc(
+      // Fix type issues with RPC calls using type assertions
+      // Since the TypeScript compiler doesn't know the shape of our custom RPCs
+      type RpcParams = { org_id: string };
+      
+      const { data: customersCount, error: customersError } = await supabase.rpc<number>(
         'count_customers_by_org', 
-        { org_id: orgId }
+        { org_id: orgId } as RpcParams
       );
       
-      const { data: invoicesCount, error: invoicesError } = await supabase.rpc(
+      const { data: invoicesCount, error: invoicesError } = await supabase.rpc<number>(
         'count_invoices_by_org', 
-        { org_id: orgId }
+        { org_id: orgId } as RpcParams
       );
       
-      const { data: collectionsCount, error: collectionsError } = await supabase.rpc(
+      const { data: collectionsCount, error: collectionsError } = await supabase.rpc<number>(
         'count_collections_by_org', 
-        { org_id: orgId }
+        { org_id: orgId } as RpcParams
       );
       
       if (customersError) console.error('Error counting customers:', customersError);
