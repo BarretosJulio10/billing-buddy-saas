@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
-import { Check, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { OrganizationHeader } from "./components/OrganizationHeader";
 import { OrganizationInfo } from "./components/OrganizationInfo";
@@ -41,6 +39,9 @@ export default function AdminOrganizationDetail() {
       if (error) throw error;
 
       if (data) {
+        const subscriptionStatus = data.subscription_status as Organization['subscriptionStatus'];
+        const gateway = data.gateway as Organization['gateway'];
+        
         const org: Organization = {
           id: data.id,
           name: data.name,
@@ -48,11 +49,11 @@ export default function AdminOrganizationDetail() {
           phone: data.phone,
           createdAt: data.created_at,
           updatedAt: data.updated_at,
-          subscriptionStatus: data.subscription_status,
+          subscriptionStatus: subscriptionStatus || 'active',
           subscriptionDueDate: data.subscription_due_date,
           subscriptionAmount: data.subscription_amount,
           lastPaymentDate: data.last_payment_date,
-          gateway: data.gateway,
+          gateway: gateway || 'mercadopago',
           isAdmin: data.is_admin,
           blocked: data.blocked
         };
@@ -75,19 +76,15 @@ export default function AdminOrganizationDetail() {
 
   const fetchStats = async (orgId: string) => {
     try {
-      const customersCount = await supabase.rpc('count_customers_by_org', { org_id: orgId });
-      const invoicesCount = await supabase.rpc('count_invoices_by_org', { org_id: orgId });
-      const collectionsCount = await supabase.rpc('count_collections_by_org', { org_id: orgId });
+      const customersCount = await supabase.rpc('count_customers_by_org', { org_id: orgId }) as { data: number };
+      const invoicesCount = await supabase.rpc('count_invoices_by_org', { org_id: orgId }) as { data: number };
+      const collectionsCount = await supabase.rpc('count_collections_by_org', { org_id: orgId }) as { data: number };
       
       setStats({
         customers: customersCount.data || 0,
         invoices: invoicesCount.data || 0,
         collections: collectionsCount.data || 0
       });
-      
-      if (customersCount.error) console.error('Error counting customers:', customersCount.error);
-      if (invoicesCount.error) console.error('Error counting invoices:', invoicesCount.error);
-      if (collectionsCount.error) console.error('Error counting collections:', collectionsCount.error);
       
     } catch (error) {
       console.error('Error fetching statistics:', error);

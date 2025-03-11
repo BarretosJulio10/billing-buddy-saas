@@ -1,10 +1,8 @@
-
-import { Building } from "lucide-react";
+import { Building, ArrowLeft, Check, X } from "lucide-react";
 import { Organization } from "@/types/organization";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 
 interface OrganizationHeaderProps {
   organization: Organization;
