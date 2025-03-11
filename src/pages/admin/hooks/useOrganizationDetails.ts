@@ -13,11 +13,6 @@ interface OrganizationStats {
 // Define the name of the RPC functions we'll call
 type FunctionName = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
 
-// Define the parameters structure for our RPC calls
-interface OrgIdParam {
-  org_id: string;
-}
-
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -88,11 +83,9 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      // Call the RPC function without explicit type parameters
-      const { data, error } = await supabase.rpc(
-        functionName, 
-        { org_id: orgId } as OrgIdParam
-      );
+      // Call the RPC function without type parameters but with safely typed parameters object
+      const params = { org_id: orgId };
+      const { data, error } = await supabase.rpc(functionName, params);
       
       if (error) throw error;
       

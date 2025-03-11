@@ -31,42 +31,46 @@ export function useAuthActions() {
         return;
       }
 
-      // Avoid nesting queries and simplify to avoid deep type instantiation
-      let organizationId: string | null = null;
+      // Use simple variable assignments to avoid deeply nested queries
       let isAdmin = false;
+      let shouldNavigate = true;
       
-      // Step 1: Get organization ID
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('email', email)
-        .single();
-      
-      if (userError) {
-        console.error('Error fetching user data:', userError);
-        navigate('/');
-      } else if (userData) {
-        organizationId = userData.organization_id;
+      try {
+        // Step 1: Get user data
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('organization_id')
+          .eq('email', email)
+          .single();
         
-        // Step 2: Check if admin (only if we have an organization)
-        if (organizationId) {
+        if (userError) {
+          console.error('Error fetching user data:', userError);
+          shouldNavigate = false;
+        } else if (userData && userData.organization_id) {
+          // Step 2: Check if admin
           const { data: orgData, error: orgError } = await supabase
             .from('organizations')
             .select('is_admin')
-            .eq('id', organizationId)
+            .eq('id', userData.organization_id)
             .single();
             
           if (orgError) {
             console.error('Error fetching organization data:', orgError);
           } else if (orgData) {
-            isAdmin = orgData.is_admin || false;
+            isAdmin = Boolean(orgData.is_admin);
           }
         }
+      } catch (e) {
+        console.error('Error during user/organization lookup:', e);
       }
 
-      // Navigate based on admin status
-      if (isAdmin) {
-        navigate('/admin');
+      // Navigate based on results
+      if (shouldNavigate) {
+        if (isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         navigate('/');
       }
