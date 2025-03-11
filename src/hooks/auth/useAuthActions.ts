@@ -26,35 +26,41 @@ export function useAuthActions() {
         return;
       }
 
-      // Fetch user and organization data separately to avoid deep type nesting
-      const userQuery = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('email', email)
-        .single();
-      
-      if (userQuery.error || !userQuery.data?.organization_id) {
-        navigate('/');
-        return;
-      }
-      
-      const organizationId = userQuery.data.organization_id;
-      
-      const orgQuery = await supabase
-        .from('organizations')
-        .select('is_admin')
-        .eq('id', organizationId)
-        .single();
-      
-      if (orgQuery.error) {
-        navigate('/');
-        return;
-      }
-      
-      // Navigate based on admin status
-      if (orgQuery.data?.is_admin) {
-        navigate('/admin');
-      } else {
+      // Break down queries to avoid deep nesting
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('organization_id')
+          .eq('email', email)
+          .single();
+        
+        if (userError || !userData?.organization_id) {
+          console.log('User not found or no organization:', userError);
+          navigate('/');
+          return;
+        }
+        
+        const orgId = userData.organization_id;
+        
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('is_admin')
+          .eq('id', orgId)
+          .single();
+        
+        if (orgError) {
+          console.log('Organization error:', orgError);
+          navigate('/');
+          return;
+        }
+        
+        if (orgData?.is_admin) {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      } catch (queryError) {
+        console.error('Error querying user data:', queryError);
         navigate('/');
       }
       
