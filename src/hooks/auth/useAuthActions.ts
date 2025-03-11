@@ -26,46 +26,40 @@ export function useAuthActions() {
         return;
       }
 
-      // Use a more straightforward approach to avoid deep type nesting
-      // First try to get the user's organization ID
-      const userResponse = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('email', email)
-        .maybeSingle();
+      // Completely refactor the approach to avoid deep type nesting
+      let redirectPath = '/';
       
-      if (userResponse.error) {
-        console.error('Error fetching user:', userResponse.error);
-        navigate('/');
-        return;
-      }
-
-      if (!userResponse.data || !userResponse.data.organization_id) {
-        console.log('User not found or has no organization');
-        navigate('/');
-        return;
-      }
-      
-      // Now fetch the organization details
-      const orgId = userResponse.data.organization_id;
-      const orgResponse = await supabase
-        .from('organizations')
-        .select('is_admin')
-        .eq('id', orgId)
-        .maybeSingle();
-      
-      if (orgResponse.error) {
-        console.error('Error fetching organization:', orgResponse.error);
-        navigate('/');
-        return;
+      try {
+        // Query for organization information directly
+        const { data: users, error: userError } = await supabase
+          .from('users')
+          .select('organization_id')
+          .eq('email', email)
+          .limit(1);
+          
+        if (userError) {
+          console.error('Error fetching user:', userError);
+        } else if (users && users.length > 0 && users[0].organization_id) {
+          const orgId = users[0].organization_id;
+          
+          const { data: orgs, error: orgError } = await supabase
+            .from('organizations')
+            .select('is_admin')
+            .eq('id', orgId)
+            .limit(1);
+            
+          if (orgError) {
+            console.error('Error fetching organization:', orgError);
+          } else if (orgs && orgs.length > 0 && orgs[0].is_admin) {
+            redirectPath = '/admin';
+          }
+        }
+      } catch (err) {
+        console.error('Error during redirection logic:', err);
       }
       
-      // Navigate based on admin status
-      if (orgResponse.data?.is_admin) {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
+      // Navigate based on the determined path
+      navigate(redirectPath);
       
       toast({
         title: "Login successful",
