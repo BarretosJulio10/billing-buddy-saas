@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -31,39 +30,37 @@ export function useAuthActions() {
         return;
       }
 
-      // Use separate variable assignments to avoid deep type nesting
-      // Step 1: Query the user
-      const userQuery = await supabase
+      // Fetch user data
+      const userResponse = await supabase
         .from('users')
         .select('organization_id')
         .eq('email', email)
         .maybeSingle();
         
-      if (userQuery.error) {
-        console.error('Error fetching user data:', userQuery.error);
+      if (userResponse.error) {
+        console.error('Error fetching user data:', userResponse.error);
         navigate('/');
         return;
       }
+
+      const organizationId = userResponse.data?.organization_id;
       
-      const userData = userQuery.data;
-      
-      // Step 2: If we have user data with an organization, query the organization
-      if (userData?.organization_id) {
-        const orgQuery = await supabase
+      // If user has an organization, check if they're an admin
+      if (organizationId) {
+        const orgResponse = await supabase
           .from('organizations')
           .select('is_admin')
-          .eq('id', userData.organization_id)
+          .eq('id', organizationId)
           .maybeSingle();
           
-        if (orgQuery.error) {
-          console.error('Error fetching organization data:', orgQuery.error);
+        if (orgResponse.error) {
+          console.error('Error fetching organization data:', orgResponse.error);
           navigate('/');
           return;
         }
         
-        const orgData = orgQuery.data;
-        
-        if (orgData?.is_admin) {
+        // Navigate based on admin status
+        if (orgResponse.data?.is_admin) {
           navigate('/admin');
         } else {
           navigate('/');

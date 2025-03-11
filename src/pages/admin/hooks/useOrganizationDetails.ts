@@ -10,13 +10,10 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define the shape of the RPC response
-interface StatResponse {
-  count: number;
-}
-
-// Define the type for the RPC function name and params
+// Define the name of the RPC functions we'll call
 type FunctionName = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
+
+// Define the parameters structure for our RPC calls
 interface OrgIdParam {
   org_id: string;
 }
@@ -91,15 +88,16 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      // Correctly type the RPC call with both the return type and params type
-      const { data, error } = await supabase.rpc<StatResponse, OrgIdParam>(
+      // Call the RPC function with correct typing, specifying return type and params
+      const { data, error } = await supabase.rpc(
         functionName, 
         { org_id: orgId }
       );
       
       if (error) throw error;
       
-      return data?.count || 0;
+      // Explicitly handle the data type
+      return typeof data === 'number' ? data : 0;
     } catch (error) {
       console.error(`Error in ${functionName}:`, error);
       return 0;
