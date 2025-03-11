@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -141,12 +140,10 @@ export default function Login() {
     }
   };
 
-  // Attempt to set up admin user when component mounts
+  // Force admin user creation on component mount
   useEffect(() => {
-    if (!adminSetupTriggered) {
-      createAdminUserIfNeeded();
-    }
-  }, [adminSetupTriggered]);
+    createAdminUserIfNeeded();
+  }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
