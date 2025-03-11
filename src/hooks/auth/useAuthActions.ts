@@ -4,11 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define simple interface for user data to avoid complex type instantiation
-interface SimpleUserData {
+// Interface simplificada para o dado do usuário para evitar a instanciação excessivamente profunda de tipos
+interface UserOrganizationData {
+  email?: string;
   organizations?: {
     is_admin?: boolean;
-  } | null;
+  };
 }
 
 export function useAuthActions() {
@@ -47,8 +48,8 @@ export function useAuthActions() {
           console.error('Error fetching user data:', userDataError);
         }
         
-        // Use the defined interface to avoid deep type instantiation
-        const userData = data as SimpleUserData | null;
+        // Usando a interface simplificada para evitar erros de tipo
+        const userData = data as UserOrganizationData | null;
         const isOrgAdmin = userData?.organizations?.is_admin || false;
         
         if (isOrgAdmin) {
