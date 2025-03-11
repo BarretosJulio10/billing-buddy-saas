@@ -10,9 +10,15 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define the type for RPC function parameters
+// Define a more proper typing for RPC function parameters and responses
 interface RpcParams {
   org_id: string;
+}
+
+// Define an interface for the RPC response
+interface RpcResponse {
+  data: number | null;
+  error: any;
 }
 
 export function useOrganizationDetails(id: string | undefined) {
@@ -74,28 +80,23 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define o objeto de parâmetros com tipagem correta
+      // Define the parameters object
       const params: RpcParams = { org_id: orgId };
       
-      // Como temos a tipagem definida corretamente, não precisamos de type assertion
-      const customersPromise = supabase.rpc<number, RpcParams>('count_customers_by_org', params);
-      const invoicesPromise = supabase.rpc<number, RpcParams>('count_invoices_by_org', params);
-      const collectionsPromise = supabase.rpc<number, RpcParams>('count_collections_by_org', params);
+      // Call RPC functions with proper type annotations
+      // Use any to bypass TypeScript constraints, then properly type the responses
+      const { data: customersData, error: customersError } = await supabase.rpc('count_customers_by_org', params) as RpcResponse;
+      const { data: invoicesData, error: invoicesError } = await supabase.rpc('count_invoices_by_org', params) as RpcResponse;
+      const { data: collectionsData, error: collectionsError } = await supabase.rpc('count_collections_by_org', params) as RpcResponse;
       
-      const [
-        customersResponse, 
-        invoicesResponse, 
-        collectionsResponse
-      ] = await Promise.all([
-        customersPromise,
-        invoicesPromise,
-        collectionsPromise
-      ]);
+      if (customersError) throw customersError;
+      if (invoicesError) throw invoicesError;
+      if (collectionsError) throw collectionsError;
       
       setStats({
-        customers: customersResponse.data || 0,
-        invoices: invoicesResponse.data || 0,
-        collections: collectionsResponse.data || 0
+        customers: customersData || 0,
+        invoices: invoicesData || 0,
+        collections: collectionsData || 0
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);

@@ -1,26 +1,24 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-// Interface simplificada para evitar a instanciação excessivamente profunda de tipos
-interface UserOrganizationData {
+// Simple interface without nested types to avoid excessive type instantiation
+interface UserData {
   email?: string;
-  organizations?: {
-    is_admin?: boolean;
-  };
+  isAdmin?: boolean;
+  organizationId?: string;
 }
 
-// Define a clear return type to avoid excessive type instantiation
-interface AuthActions {
+// Define a clear return type for the hook
+interface AuthActionsReturn {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, orgName: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
 
-export function useAuthActions(): AuthActions {
+export function useAuthActions(): AuthActionsReturn {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -56,9 +54,8 @@ export function useAuthActions(): AuthActions {
           console.error('Error fetching user data:', userDataError);
         }
         
-        // Usando a interface simplificada para evitar erros de tipo
-        const userData = data as UserOrganizationData | null;
-        const isOrgAdmin = userData?.organizations?.is_admin || false;
+        // Using a simpler approach to avoid complex type nesting
+        const isOrgAdmin = data?.organizations?.is_admin || false;
         
         if (isOrgAdmin) {
           navigate('/admin');
