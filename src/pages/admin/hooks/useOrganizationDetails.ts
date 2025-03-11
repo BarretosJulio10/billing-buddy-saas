@@ -10,8 +10,11 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define proper types for RPC functions
+// Define proper types for RPC functions and responses
 type RpcFunction = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
+interface RpcParams {
+  org_id: string;
+}
 
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
@@ -73,9 +76,10 @@ export function useOrganizationDetails(id: string | undefined) {
   const fetchStats = async (orgId: string) => {
     try {
       async function fetchCount(functionName: RpcFunction): Promise<number> {
-        const { data, error } = await supabase.rpc(functionName, { org_id: orgId });
+        const params: RpcParams = { org_id: orgId };
+        const { data, error } = await supabase.rpc(functionName, params);
         if (error) throw error;
-        return (data as number) || 0;
+        return typeof data === 'number' ? data : 0;
       }
 
       const [customers, invoices, collections] = await Promise.all([

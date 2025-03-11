@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-// Simple interface for organization data to avoid deep type instantiation
-interface OrganizationData {
-  id: string;
-  is_admin: boolean;
+interface UserData {
+  organization_id?: string;
+}
+
+interface OrgData {
+  is_admin?: boolean;
 }
 
 export function useAuthActions() {
