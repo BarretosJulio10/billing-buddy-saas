@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Table,
@@ -10,12 +9,19 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Edit, Trash2, CopyIcon } from "lucide-react";
+import { Search, Edit, Trash2, CopyIcon, HelpCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { CollectionRuleForm, CollectionRule } from "./CollectionRuleForm";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // Temporary mock data until Supabase integration
 const mockCollectionRules: (CollectionRule & { overdueDaysAfter: number[] })[] = [
@@ -148,6 +154,31 @@ export function CollectionRuleTable() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <TooltipProvider>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size="icon" variant="outline" className="h-9 w-9">
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="grid gap-2">
+                <h4 className="font-medium leading-none">Modelos de Cobrança</h4>
+                <p className="text-sm text-muted-foreground">
+                  Esta tabela exibe os modelos de cobrança para suas faturas. Cada modelo define:
+                  <ul className="list-disc pl-4 mt-1 space-y-1 text-xs">
+                    <li>Quando enviar lembretes antes do vencimento</li>
+                    <li>Se deve enviar cobrança no dia do vencimento</li>
+                    <li>Quais dias enviar lembretes após o vencimento</li>
+                    <li>Mensagens personalizadas para cada situação</li>
+                  </ul>
+                  <br />
+                  Você pode criar, editar, duplicar ou remover modelos conforme necessário.
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </TooltipProvider>
       </div>
 
       <div className="rounded-md border">
@@ -175,62 +206,90 @@ export function CollectionRuleTable() {
                   <TableCell>{rule.reminderDaysBefore} dias antes</TableCell>
                   <TableCell>{rule.overdueDaysAfter.join(', ')} dias depois</TableCell>
                   <TableCell>
-                    <Switch 
-                      checked={rule.isActive} 
-                      onCheckedChange={() => handleStatusChange(rule.id)}
-                    />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Switch 
+                            checked={rule.isActive} 
+                            onCheckedChange={() => handleStatusChange(rule.id)}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {rule.isActive ? "Desativar modelo" : "Ativar modelo"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Sheet>
-                        <SheetTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            onClick={() => setRuleToEdit(rule)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </SheetTrigger>
-                        <SheetContent className="w-full sm:max-w-[540px]">
-                          <SheetHeader>
-                            <SheetTitle>Editar Modelo de Cobrança</SheetTitle>
-                          </SheetHeader>
-                          <div className="mt-6">
-                            {ruleToEdit && (
-                              <CollectionRuleForm 
-                                initialData={{
-                                  name: ruleToEdit.name,
-                                  isActive: ruleToEdit.isActive,
-                                  reminderDaysBefore: ruleToEdit.reminderDaysBefore,
-                                  sendOnDueDate: ruleToEdit.sendOnDueDate,
-                                  overdueDaysAfter: ruleToEdit.overdueDaysAfter.join(', '),
-                                  reminderTemplate: ruleToEdit.reminderTemplate,
-                                  dueDateTemplate: ruleToEdit.dueDateTemplate,
-                                  overdueTemplate: ruleToEdit.overdueTemplate,
-                                  confirmationTemplate: ruleToEdit.confirmationTemplate,
-                                }}
-                                onSubmit={handleSaveRule}
-                                onCancel={() => setRuleToEdit(null)}
-                              />
-                            )}
-                          </div>
-                        </SheetContent>
-                      </Sheet>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => handleDuplicate(rule.id)}
-                      >
-                        <CopyIcon className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => handleDelete(rule.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Sheet>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SheetTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="icon"
+                                  onClick={() => setRuleToEdit(rule)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </SheetTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>Editar modelo</TooltipContent>
+                          </Tooltip>
+                          <SheetContent className="w-full sm:max-w-[540px]">
+                            <SheetHeader>
+                              <SheetTitle>Editar Modelo de Cobrança</SheetTitle>
+                            </SheetHeader>
+                            <div className="mt-6">
+                              {ruleToEdit && (
+                                <CollectionRuleForm 
+                                  initialData={{
+                                    name: ruleToEdit.name,
+                                    isActive: ruleToEdit.isActive,
+                                    reminderDaysBefore: ruleToEdit.reminderDaysBefore,
+                                    sendOnDueDate: ruleToEdit.sendOnDueDate,
+                                    overdueDaysAfter: ruleToEdit.overdueDaysAfter.join(', '),
+                                    reminderTemplate: ruleToEdit.reminderTemplate,
+                                    dueDateTemplate: ruleToEdit.dueDateTemplate,
+                                    overdueTemplate: ruleToEdit.overdueTemplate,
+                                    confirmationTemplate: ruleToEdit.confirmationTemplate,
+                                  }}
+                                  onSubmit={handleSaveRule}
+                                  onCancel={() => setRuleToEdit(null)}
+                                />
+                              )}
+                            </div>
+                          </SheetContent>
+                        </Sheet>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              onClick={() => handleDuplicate(rule.id)}
+                            >
+                              <CopyIcon className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Duplicar modelo</TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              onClick={() => handleDelete(rule.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Remover modelo</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                 </TableRow>

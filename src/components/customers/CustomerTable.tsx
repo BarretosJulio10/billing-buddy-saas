@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Table,
@@ -10,13 +9,19 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Edit, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { Search, Edit, Trash2, CheckCircle, XCircle, HelpCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { CustomerForm } from "./CustomerForm";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-// Temporary mock data until Supabase integration
 const mockCustomers = [
   { 
     id: "1", 
@@ -86,7 +91,6 @@ export function CustomerTable() {
   };
 
   const handleDelete = (id: string) => {
-    // In the future, this will mark as deleted in the database
     setCustomers(customers.filter((customer) => customer.id !== id));
     toast({
       title: "Cliente removido",
@@ -97,7 +101,6 @@ export function CustomerTable() {
 
   const handleSaveCustomer = (updatedCustomer: Omit<Customer, "id">) => {
     if (customerToEdit) {
-      // Update existing customer
       setCustomers(
         customers.map((customer) =>
           customer.id === customerToEdit.id
@@ -110,10 +113,9 @@ export function CustomerTable() {
         description: "Os dados do cliente foram atualizados com sucesso.",
       });
     } else {
-      // Add new customer
       const newCustomer = {
         ...updatedCustomer,
-        id: Date.now().toString(), // Temporary, will be replaced with UUID from Supabase
+        id: Date.now().toString(),
       };
       setCustomers([...customers, newCustomer]);
       toast({
@@ -136,6 +138,29 @@ export function CustomerTable() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <TooltipProvider>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size="icon" variant="outline" className="h-9 w-9">
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="grid gap-2">
+                <h4 className="font-medium leading-none">Gerenciamento de Clientes</h4>
+                <p className="text-sm text-muted-foreground">
+                  Esta tabela exibe todos os seus clientes. Você pode:
+                  <ul className="list-disc pl-4 mt-1 space-y-1 text-xs">
+                    <li>Buscar clientes por nome, email, telefone ou CPF/CNPJ</li>
+                    <li>Editar os dados do cliente</li>
+                    <li>Ativar ou desativar um cliente</li>
+                    <li>Mover um cliente para a lixeira</li>
+                  </ul>
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </TooltipProvider>
       </div>
 
       <div className="rounded-md border">
@@ -171,47 +196,68 @@ export function CustomerTable() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Sheet>
-                        <SheetTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            onClick={() => setCustomerToEdit(customer)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </SheetTrigger>
-                        <SheetContent className="w-full sm:max-w-[540px]">
-                          <SheetHeader>
-                            <SheetTitle>Editar Cliente</SheetTitle>
-                          </SheetHeader>
-                          <div className="mt-6">
-                            <CustomerForm 
-                              initialData={customerToEdit!} 
-                              onSubmit={handleSaveCustomer}
-                              onCancel={() => setCustomerToEdit(null)}
-                            />
-                          </div>
-                        </SheetContent>
-                      </Sheet>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => handleStatusChange(customer.id)}
-                      >
-                        {customer.isActive ? (
-                          <XCircle className="h-4 w-4 text-destructive" />
-                        ) : (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        )}
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => handleDelete(customer.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Sheet>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SheetTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="icon"
+                                  onClick={() => setCustomerToEdit(customer)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </SheetTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>Editar cliente</TooltipContent>
+                          </Tooltip>
+                          <SheetContent className="w-full sm:max-w-[540px]">
+                            <SheetHeader>
+                              <SheetTitle>Editar Cliente</SheetTitle>
+                            </SheetHeader>
+                            <div className="mt-6">
+                              <CustomerForm 
+                                initialData={customerToEdit!} 
+                                onSubmit={handleSaveCustomer}
+                                onCancel={() => setCustomerToEdit(null)}
+                              />
+                            </div>
+                          </SheetContent>
+                        </Sheet>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              onClick={() => handleStatusChange(customer.id)}
+                            >
+                              {customer.isActive ? (
+                                <XCircle className="h-4 w-4 text-destructive" />
+                              ) : (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {customer.isActive ? "Desativar cliente" : "Ativar cliente"}
+                          </TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              onClick={() => handleDelete(customer.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Mover para lixeira</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                 </TableRow>

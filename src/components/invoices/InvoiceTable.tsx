@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Table,
@@ -16,7 +15,8 @@ import {
   Trash2, 
   CheckCircle, 
   XCircle,
-  Send
+  Send,
+  HelpCircle
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { InvoiceForm, Invoice } from "./InvoiceForm";
@@ -30,8 +30,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-// Temporary mock data until Supabase integration
 const mockInvoices: Invoice[] = [
   { 
     id: "1", 
@@ -81,7 +87,6 @@ export function InvoiceTable() {
   );
 
   const handleDelete = (id: string) => {
-    // In the future, this will mark as deleted in the database
     setInvoices(invoices.filter((invoice) => invoice.id !== id));
     toast({
       title: "Fatura removida",
@@ -92,7 +97,6 @@ export function InvoiceTable() {
 
   const handleSaveInvoice = (updatedInvoice: any) => {
     if (invoiceToEdit) {
-      // Update existing invoice
       setInvoices(
         invoices.map((invoice) =>
           invoice.id === invoiceToEdit.id
@@ -113,7 +117,6 @@ export function InvoiceTable() {
   };
 
   const handleSendInvoice = (id: string) => {
-    // Will be integrated with WhatsApp/Telegram API later
     toast({
       title: "Cobrança enviada",
       description: "A cobrança foi enviada para o cliente com sucesso.",
@@ -175,6 +178,30 @@ export function InvoiceTable() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <TooltipProvider>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size="icon" variant="outline" className="h-9 w-9">
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="grid gap-2">
+                <h4 className="font-medium leading-none">Gerenciamento de Faturas</h4>
+                <p className="text-sm text-muted-foreground">
+                  Esta tabela exibe todas as faturas de seus clientes. Você pode:
+                  <ul className="list-disc pl-4 mt-1 space-y-1 text-xs">
+                    <li>Buscar faturas pelo nome do cliente ou descrição</li>
+                    <li>Enviar cobranças por WhatsApp ou Telegram</li>
+                    <li>Editar os detalhes da fatura</li>
+                    <li>Marcar faturas como pagas ou canceladas</li>
+                    <li>Mover faturas para a lixeira</li>
+                  </ul>
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </TooltipProvider>
       </div>
 
       <div className="rounded-md border">
@@ -217,82 +244,113 @@ export function InvoiceTable() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleSendInvoice(invoice.id)}>
-                            Enviar por WhatsApp
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleSendInvoice(invoice.id)}>
-                            Enviar por Telegram
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <Sheet>
-                        <SheetTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => setInvoiceToEdit(invoice)}
-                            className="h-8 w-8"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </SheetTrigger>
-                        <SheetContent className="w-full sm:max-w-[540px]">
-                          <SheetHeader>
-                            <SheetTitle>Editar Fatura</SheetTitle>
-                          </SheetHeader>
-                          <div className="mt-6">
-                            {invoiceToEdit && (
-                              <InvoiceForm 
-                                initialData={{
-                                  customerId: invoiceToEdit.customerId,
-                                  amount: invoiceToEdit.amount,
-                                  description: invoiceToEdit.description,
-                                  dueDate: invoiceToEdit.dueDate,
-                                  paymentMethod: invoiceToEdit.paymentMethod,
-                                  messageTemplateId: invoiceToEdit.messageTemplateId,
-                                }}
-                                onSubmit={handleSaveInvoice}
-                                onCancel={() => setInvoiceToEdit(null)}
-                              />
-                            )}
-                          </div>
-                        </SheetContent>
-                      </Sheet>
-                      {invoice.status !== "paid" && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleMarkAsPaid(invoice.id)}
-                          className="h-8 w-8"
-                        >
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        </Button>
-                      )}
-                      {invoice.status !== "cancelled" && (
-                        <Button 
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleCancelInvoice(invoice.id)}
-                          className="h-8 w-8"
-                        >
-                          <XCircle className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleDelete(invoice.id)}
-                        className="h-8 w-8"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <DropdownMenu>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Send className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>Enviar cobrança</TooltipContent>
+                          </Tooltip>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleSendInvoice(invoice.id)}>
+                              Enviar por WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSendInvoice(invoice.id)}>
+                              Enviar por Telegram
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        
+                        <Sheet>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SheetTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => setInvoiceToEdit(invoice)}
+                                  className="h-8 w-8"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </SheetTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>Editar fatura</TooltipContent>
+                          </Tooltip>
+                          <SheetContent className="w-full sm:max-w-[540px]">
+                            <SheetHeader>
+                              <SheetTitle>Editar Fatura</SheetTitle>
+                            </SheetHeader>
+                            <div className="mt-6">
+                              {invoiceToEdit && (
+                                <InvoiceForm 
+                                  initialData={{
+                                    customerId: invoiceToEdit.customerId,
+                                    amount: invoiceToEdit.amount,
+                                    description: invoiceToEdit.description,
+                                    dueDate: invoiceToEdit.dueDate,
+                                    paymentMethod: invoiceToEdit.paymentMethod,
+                                    messageTemplateId: invoiceToEdit.messageTemplateId,
+                                  }}
+                                  onSubmit={handleSaveInvoice}
+                                  onCancel={() => setInvoiceToEdit(null)}
+                                />
+                              )}
+                            </div>
+                          </SheetContent>
+                        </Sheet>
+                        
+                        {invoice.status !== "paid" && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleMarkAsPaid(invoice.id)}
+                                className="h-8 w-8"
+                              >
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Marcar como pago</TooltipContent>
+                          </Tooltip>
+                        )}
+                        
+                        {invoice.status !== "cancelled" && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleCancelInvoice(invoice.id)}
+                                className="h-8 w-8"
+                              >
+                                <XCircle className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Cancelar fatura</TooltipContent>
+                          </Tooltip>
+                        )}
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleDelete(invoice.id)}
+                              className="h-8 w-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Mover para lixeira</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                 </TableRow>

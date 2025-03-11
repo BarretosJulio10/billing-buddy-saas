@@ -1,10 +1,16 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Check, Loader2 } from "lucide-react";
+import { AlertCircle, Check, Loader2, HelpCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface WhatsAppQRScannerProps {
   apiEndpoint: string;
@@ -60,17 +66,50 @@ export function WhatsAppQRScanner({ apiEndpoint, onSuccess }: WhatsAppQRScannerP
 
   return (
     <Card className="w-full">
-      <CardHeader>
+      <CardHeader className="relative">
         <CardTitle>Conectar WhatsApp</CardTitle>
         <CardDescription>
           Escaneie o QR code com seu WhatsApp para conectar sua conta
         </CardDescription>
+        <TooltipProvider>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon" className="absolute right-4 top-4 h-8 w-8">
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="grid gap-2">
+                <h4 className="font-medium leading-none">Conectando o WhatsApp</h4>
+                <p className="text-sm text-muted-foreground">
+                  Esta funcionalidade permite conectar sua conta WhatsApp para envio automatizado de cobranças.
+                  <ul className="list-disc pl-4 mt-1 space-y-1 text-xs">
+                    <li>Clique em "Gerar QR Code" para iniciar o processo</li>
+                    <li>Abra o WhatsApp no seu celular</li>
+                    <li>Vá em Configurações &gt; Dispositivos Conectados &gt; Conectar Dispositivo</li>
+                    <li>Escaneie o QR code exibido na tela</li>
+                    <li>Aguarde a confirmação de conexão</li>
+                  </ul>
+                  <br />
+                  Importante: Esta conexão permite envio de mensagens em seu nome e deve ser feita apenas em dispositivos confiáveis.
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </TooltipProvider>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center">
         {status === "idle" && (
-          <Button onClick={connectWhatsApp} className="mb-4">
-            Gerar QR Code
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={connectWhatsApp} className="mb-4">
+                  Gerar QR Code
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Inicia o processo de conexão do WhatsApp</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
 
         {status === "loading" && !qrCode && (
@@ -111,12 +150,21 @@ export function WhatsAppQRScanner({ apiEndpoint, onSuccess }: WhatsAppQRScannerP
       </CardContent>
       {(status === "error" || status === "authenticated") && (
         <CardFooter className="flex justify-end">
-          <Button 
-            variant={status === "error" ? "default" : "outline"}
-            onClick={handleRetry}
-          >
-            {status === "error" ? "Tentar novamente" : "Reconectar"}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant={status === "error" ? "default" : "outline"}
+                  onClick={handleRetry}
+                >
+                  {status === "error" ? "Tentar novamente" : "Reconectar"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {status === "error" ? "Tenta conectar novamente" : "Inicia uma nova conexão"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </CardFooter>
       )}
     </Card>
