@@ -81,7 +81,11 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      const { data, error } = await supabase.rpc(functionName, { org_id: orgId } as { org_id: string });
+      const { data, error } = await supabase.rpc(
+        functionName,
+        { org_id: orgId },
+        { count: 'exact' }
+      );
       
       if (error) throw error;
       
