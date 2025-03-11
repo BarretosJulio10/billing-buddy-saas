@@ -31,24 +31,27 @@ export function useAuthActions() {
         return;
       }
 
-      // Restructure the logic to avoid deep type instantiation
+      // Completely restructure the redirection logic to avoid deep type instantiation
       let redirectPath = '/';
       
       try {
-        // First get the user's organization ID
-        const { data: userData } = await supabase
+        // Use raw SQL query to avoid deep type instantiation issues
+        const { data: userData, error: userError } = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
-          .single();
+          .maybeSingle();
+          
+        if (userError) throw userError;
         
         if (userData?.organization_id) {
-          // Then check if the organization is admin
-          const { data: orgData } = await supabase
+          const { data: orgData, error: orgError } = await supabase
             .from('organizations')
             .select('is_admin')
             .eq('id', userData.organization_id)
-            .single();
+            .maybeSingle();
+            
+          if (orgError) throw orgError;
           
           if (orgData?.is_admin) {
             redirectPath = '/admin';
