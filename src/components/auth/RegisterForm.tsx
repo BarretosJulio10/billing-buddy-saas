@@ -14,13 +14,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { X } from "lucide-react";
 
 const registerSchema = z.object({
-  organizationName: z.string().min(3, "O nome da empresa deve ter pelo menos 3 caracteres"),
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  orgName: z.string().min(3, "O nome da organização deve ter pelo menos 3 caracteres"),
 });
 
 type RegisterFormProps = {
@@ -31,82 +32,28 @@ type RegisterFormProps = {
 export function RegisterForm({ isLoading, setIsLoading }: RegisterFormProps) {
   const { signUp } = useAuth();
   const { toast } = useToast();
-  const [adminOrganizationId, setAdminOrganizationId] = useState<string | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      organizationName: "",
       email: "",
       password: "",
+      orgName: ""
     },
   });
-
-  useEffect(() => {
-    async function fetchAdminOrganization() {
-      try {
-        const { data, error } = await supabase
-          .from('organizations')
-          .select('id')
-          .eq('email', 'julioquintanilha@hotmail.com')
-          .eq('is_admin', true)
-          .maybeSingle();
-          
-        if (error) {
-          console.error('Error fetching admin organization:', error);
-          return;
-        }
-        
-        if (data) {
-          console.log('Admin organization found:', data.id);
-          setAdminOrganizationId(data.id);
-        }
-      } catch (error) {
-        console.error('Failed to fetch admin organization:', error);
-      }
-    }
-    
-    fetchAdminOrganization();
-  }, []);
 
   const handleRegister = async (data: z.infer<typeof registerSchema>) => {
     try {
       setIsLoading(true);
+      setRegisterError(null);
       
-      if (data.email === 'julioquintanilha@hotmail.com' && adminOrganizationId) {
-        console.log('Attempting admin registration...');
-        
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: data.email,
-          password: data.password,
-        });
-        
-        if (authError) throw authError;
-        
-        if (authData.user) {
-          const { error: userError } = await supabase
-            .from('users')
-            .insert({
-              id: authData.user.id,
-              organization_id: adminOrganizationId,
-              role: 'admin',
-              first_name: 'Admin',
-              last_name: 'System',
-            });
-            
-          if (userError) throw userError;
-          
-          toast({
-            title: "Conta de administrador criada",
-            description: "Você pode agora fazer login como administrador.",
-          });
-          
-          form.reset();
-          return;
-        }
-      } else {
-        await signUp(data.email, data.password, data.organizationName);
-      }
+      console.log("Registration attempt with:", {
+        email: data.email,
+        orgName: data.orgName
+      });
+      
+      await signUp(data.email, data.password, data.orgName);
       
       form.reset();
       
@@ -116,9 +63,18 @@ export function RegisterForm({ isLoading, setIsLoading }: RegisterFormProps) {
       });
     } catch (error: any) {
       console.error('Registration error:', error);
+      
+      let errorMessage = "Erro ao criar conta. Por favor, tente novamente.";
+      
+      if (error.message.includes("already in use")) {
+        errorMessage = "Este email já está em uso. Por favor, use outro email.";
+      }
+      
+      setRegisterError(errorMessage);
+      
       toast({
         title: "Erro ao criar conta",
-        description: error.message || "Ocorreu um erro ao criar sua conta",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -126,23 +82,24 @@ export function RegisterForm({ isLoading, setIsLoading }: RegisterFormProps) {
     }
   };
 
+  const clearError = () => {
+    setRegisterError(null);
+  };
+
   return (
     <Form {...form}>
+      {registerError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription className="flex justify-between items-center">
+            {registerError}
+            <button onClick={clearError} className="text-xs">
+              <X size={16} />
+            </button>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <form onSubmit={form.handleSubmit(handleRegister)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="organizationName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome da Empresa</FormLabel>
-              <FormControl>
-                <Input placeholder="Sua Empresa Ltda" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
         <FormField
           control={form.control}
           name="email"
@@ -150,7 +107,10 @@ export function RegisterForm({ isLoading, setIsLoading }: RegisterFormProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="seu@email.com" {...field} />
+                <Input placeholder="seu@email.com" {...field} onChange={(e) => {
+                  field.onChange(e);
+                  if (registerError) setRegisterError(null);
+                }} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -164,7 +124,27 @@ export function RegisterForm({ isLoading, setIsLoading }: RegisterFormProps) {
             <FormItem>
               <FormLabel>Senha</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••" {...field} />
+                <Input type="password" placeholder="••••••" {...field} onChange={(e) => {
+                  field.onChange(e);
+                  if (registerError) setRegisterError(null);
+                }} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="orgName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome da Organização</FormLabel>
+              <FormControl>
+                <Input placeholder="Nome da empresa ou organização" {...field} onChange={(e) => {
+                  field.onChange(e);
+                  if (registerError) setRegisterError(null);
+                }} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -172,7 +152,7 @@ export function RegisterForm({ isLoading, setIsLoading }: RegisterFormProps) {
         />
         
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Cadastrando..." : "Cadastrar"}
+          {isLoading ? "Registrando..." : "Cadastrar"}
         </Button>
       </form>
     </Form>

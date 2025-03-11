@@ -15,25 +15,28 @@ export function useAuthActions() {
       console.log(`Attempting to sign in: ${email}`);
       
       // Try to sign in
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      if (error) throw error;
+      if (signInError) {
+        console.error('Sign in error:', signInError);
+        throw signInError;
+      }
 
-      // Get current user data
-      const { data: { user } } = await supabase.auth.getUser();
+      if (!authData.user) {
+        console.error("User not found after login");
+        throw new Error("User not found after login");
+      }
       
-      if (!user) throw new Error("User not found after login");
-      
-      console.log("User authenticated successfully:", user.id);
+      console.log("User authenticated successfully:", authData.user.id);
 
       // Get organization data for the user
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('organization_id, role, first_name, last_name')
-        .eq('id', user.id)
+        .eq('id', authData.user.id)
         .maybeSingle();
       
       if (userError) {
@@ -42,8 +45,38 @@ export function useAuthActions() {
       }
       
       if (!userData) {
-        console.error("User data not found for ID:", user.id);
-        throw new Error("User data not found. Please contact support.");
+        console.error("User data not found for ID:", authData.user.id);
+        // Create user entry if not exists
+        const { error: createUserError } = await supabase
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            email: email,
+            role: 'admin', // Default role
+          });
+          
+        if (createUserError) {
+          console.error("Error creating user data:", createUserError);
+          throw createUserError;
+        }
+        
+        // Retry fetching user data
+        const { data: retryUserData, error: retryUserError } = await supabase
+          .from('users')
+          .select('organization_id, role, first_name, last_name')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+          
+        if (retryUserError || !retryUserData) {
+          console.error("Error fetching retry user data:", retryUserError);
+          throw new Error("User data not found. Please contact support.");
+        }
+        
+        console.log("Created and retrieved user data:", retryUserData);
+        
+        // Now redirect to registration completion page
+        navigate('/complete-profile');
+        return;
       }
 
       console.log("User data retrieved:", userData);
@@ -74,14 +107,14 @@ export function useAuthActions() {
       navigate(redirectPath);
 
       toast({
-        title: "Login successful",
-        description: isAdmin ? "Welcome back, Admin!" : "Welcome back!",
+        title: "Login realizado com sucesso",
+        description: isAdmin ? "Bem-vindo de volta, Admin!" : "Bem-vindo de volta!",
       });
     } catch (error: any) {
       console.error('Full login error details:', error);
       toast({
-        title: "Login error",
-        description: error.message || "Authentication failed",
+        title: "Erro de login",
+        description: error.message || "Falha na autenticação",
         variant: "destructive",
       });
       throw error;
@@ -93,6 +126,7 @@ export function useAuthActions() {
   const signUp = async (email: string, password: string, orgName: string) => {
     try {
       setLoading(true);
+      console.log(`Attempting to register: ${email} / ${orgName}`);
       
       // Check if email exists
       const { data: emailCheck, error: emailCheckError } = await supabase
@@ -101,56 +135,90 @@ export function useAuthActions() {
         .eq('email', email)
         .maybeSingle();
 
-      if (emailCheckError) throw emailCheckError;
+      if (emailCheckError) {
+        console.error('Email check error:', emailCheckError);
+        throw emailCheckError;
+      }
       
       if (emailCheck) {
-        throw new Error('This email is already in use');
+        console.error('Email already in use:', email);
+        throw new Error('Este email já está em uso');
       }
 
+      // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            org_name: orgName
+          }
+        }
       });
       
-      if (authError) throw authError;
-      
-      if (authData.user) {
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .insert({
-            name: orgName,
-            email: email,
-            subscription_due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
-          })
-          .select()
-          .single();
-          
-        if (orgError) throw orgError;
-        
-        if (orgData) {
-          const { error: userError } = await supabase
-            .from('users')
-            .insert({
-              id: authData.user.id,
-              organization_id: orgData.id,
-              role: 'admin',
-              email: email
-            });
-            
-          if (userError) throw userError;
-        }
+      if (authError) {
+        console.error('Auth signup error:', authError);
+        throw authError;
       }
       
+      if (!authData.user) {
+        console.error('No user returned from signup');
+        throw new Error('Erro ao criar usuário. Por favor, tente novamente.');
+      }
+      
+      console.log('Auth user created:', authData.user.id);
+      
+      // Create organization
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: orgName,
+          email: email,
+          subscription_due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
+          subscription_status: 'active',
+          blocked: false,
+        })
+        .select()
+        .single();
+        
+      if (orgError) {
+        console.error('Organization creation error:', orgError);
+        throw orgError;
+      }
+      
+      console.log('Organization created:', orgData.id);
+      
+      // Create user profile
+      const { error: userError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          organization_id: orgData.id,
+          role: 'admin',
+          email: email
+        });
+        
+      if (userError) {
+        console.error('User profile creation error:', userError);
+        throw userError;
+      }
+      
+      console.log('User profile created for:', authData.user.id);
+      
       toast({
-        title: "Account created successfully",
-        description: "You can now log in to the system.",
+        title: "Conta criada com sucesso",
+        description: "Você já pode fazer login no sistema.",
       });
+      
+      return true;
     } catch (error: any) {
+      console.error('Registration error:', error);
       toast({
-        title: "Error creating account",
-        description: error.message,
+        title: "Erro ao criar conta",
+        description: error.message || "Erro desconhecido",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -163,12 +231,12 @@ export function useAuthActions() {
       if (error) throw error;
       navigate('/login');
       toast({
-        title: "Logout successful",
-        description: "See you soon!",
+        title: "Logout realizado com sucesso",
+        description: "Até breve!",
       });
     } catch (error: any) {
       toast({
-        title: "Logout error",
+        title: "Erro ao fazer logout",
         description: error.message,
         variant: "destructive",
       });
