@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -19,43 +18,27 @@ export function useAuthActions() {
         password,
       });
       
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
-      // Special case for the admin email
       if (email === 'julioquintanilha@hotmail.com') {
         navigate('/admin');
         return;
       }
+
+      const { data: userOrg } = await supabase
+        .from('users')
+        .select(`
+          organization_id,
+          organizations:organization_id (
+            is_admin
+          )
+        `)
+        .eq('email', email)
+        .maybeSingle();
       
-      // Fetch user data including organization info
-      try {
-        // First get the organization_id for the user
-        const { data: user } = await supabase
-          .from('users')
-          .select('organization_id')
-          .eq('email', email)
-          .maybeSingle();
-          
-        if (user?.organization_id) {
-          // Then check if the organization is an admin organization
-          const { data: org } = await supabase
-            .from('organizations')
-            .select('is_admin')
-            .eq('id', user.organization_id)
-            .single();
-            
-          if (org?.is_admin) {
-            navigate('/admin');
-          } else {
-            navigate('/');
-          }
-        } else {
-          navigate('/');
-        }
-      } catch (fetchError) {
-        console.error('Error fetching user/org data:', fetchError);
+      if (userOrg?.organizations?.is_admin) {
+        navigate('/admin');
+      } else {
         navigate('/');
       }
       

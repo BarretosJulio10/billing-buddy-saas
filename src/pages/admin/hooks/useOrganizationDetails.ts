@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
@@ -10,11 +9,8 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define proper types for RPC functions and responses
+// Define proper types for RPC functions
 type RpcFunction = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
-interface RpcParams {
-  org_id: string;
-}
 
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
@@ -75,15 +71,10 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Type-safe function to fetch counts with proper type conversions
       async function fetchCount(functionName: RpcFunction): Promise<number> {
-        // Use a general Record type for the params to satisfy the RPC function
-        const params = { org_id: orgId };
-        
-        const { data, error } = await supabase.rpc(
-          functionName, 
-          params
-        );
+        const { data, error } = await supabase.rpc(functionName, {
+          org_id: orgId
+        });
         
         if (error) throw error;
         return typeof data === 'number' ? data : 0;
