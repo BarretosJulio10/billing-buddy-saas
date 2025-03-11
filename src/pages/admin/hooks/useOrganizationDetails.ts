@@ -10,8 +10,12 @@ interface OrganizationStats {
   collections: number;
 }
 
-type CountFunctionName = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
+// Define the return type from the RPC function
+interface CountResult {
+  count: number;
+}
 
+// Define the parameters for the RPC function
 interface RpcParams {
   org_id: string;
 }
@@ -38,6 +42,9 @@ export function useOrganizationDetails(id: string | undefined) {
       if (error) throw error;
 
       if (data) {
+        const subscriptionStatus = data.subscription_status as Organization['subscriptionStatus'];
+        const gateway = data.gateway as Organization['gateway'];
+        
         const org: Organization = {
           id: data.id,
           name: data.name,
@@ -45,11 +52,11 @@ export function useOrganizationDetails(id: string | undefined) {
           phone: data.phone,
           createdAt: data.created_at,
           updatedAt: data.updated_at,
-          subscriptionStatus: data.subscription_status || 'active',
+          subscriptionStatus: subscriptionStatus || 'active',
           subscriptionDueDate: data.subscription_due_date,
           subscriptionAmount: data.subscription_amount,
           lastPaymentDate: data.last_payment_date,
-          gateway: data.gateway || 'mercadopago',
+          gateway: gateway || 'mercadopago',
           isAdmin: data.is_admin,
           blocked: data.blocked
         };
@@ -70,14 +77,14 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      const fetchSingleStat = async (functionName: CountFunctionName): Promise<number> => {
-        const { data, error } = await supabase.rpc<number, RpcParams>(
-          functionName,
+      const fetchSingleStat = async (functionName: string): Promise<number> => {
+        const { data, error } = await supabase.rpc<CountResult, RpcParams>(
+          functionName as any,
           { org_id: orgId }
         );
         
         if (error) throw error;
-        return typeof data === 'number' ? data : 0;
+        return data?.count || 0;
       };
 
       const [customers, invoices, collections] = await Promise.all([

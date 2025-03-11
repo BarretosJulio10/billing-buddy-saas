@@ -35,20 +35,28 @@ export function useAuthActions() {
       let redirectPath = '/';
       
       try {
-        const userResult = await supabase
+        // First query to get organization_id
+        const userResponse = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
-          .single();
-
-        if (userResult.data?.organization_id) {
-          const orgResult = await supabase
+          .maybeSingle();
+        
+        if (userResponse.error) throw userResponse.error;
+        
+        const organizationId = userResponse.data?.organization_id;
+        
+        if (organizationId) {
+          // Second query to check if user is admin
+          const orgResponse = await supabase
             .from('organizations')
             .select('is_admin')
-            .eq('id', userResult.data.organization_id)
-            .single();
-
-          if (orgResult.data?.is_admin) {
+            .eq('id', organizationId)
+            .maybeSingle();
+          
+          if (orgResponse.error) throw orgResponse.error;
+          
+          if (orgResponse.data?.is_admin) {
             redirectPath = '/admin';
           }
         }
@@ -80,12 +88,14 @@ export function useAuthActions() {
       setLoading(true);
       
       // Check if email exists
-      const { data: emailCheck } = await supabase
+      const { data: emailCheck, error: emailCheckError } = await supabase
         .from('organizations')
         .select('email')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
+      if (emailCheckError) throw emailCheckError;
+      
       if (emailCheck) {
         throw new Error('This email is already in use');
       }
