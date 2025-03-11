@@ -26,41 +26,44 @@ export function useAuthActions() {
         return;
       }
 
-      // Break down queries to avoid deep nesting
-      try {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('organization_id')
-          .eq('email', email)
-          .single();
-        
-        if (userError || !userData?.organization_id) {
-          console.log('User not found or no organization:', userError);
-          navigate('/');
-          return;
-        }
-        
-        const orgId = userData.organization_id;
-        
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .select('is_admin')
-          .eq('id', orgId)
-          .single();
-        
-        if (orgError) {
-          console.log('Organization error:', orgError);
-          navigate('/');
-          return;
-        }
-        
-        if (orgData?.is_admin) {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
-      } catch (queryError) {
-        console.error('Error querying user data:', queryError);
+      // Use a more straightforward approach to avoid deep type nesting
+      // First try to get the user's organization ID
+      const userResponse = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (userResponse.error) {
+        console.error('Error fetching user:', userResponse.error);
+        navigate('/');
+        return;
+      }
+
+      if (!userResponse.data || !userResponse.data.organization_id) {
+        console.log('User not found or has no organization');
+        navigate('/');
+        return;
+      }
+      
+      // Now fetch the organization details
+      const orgId = userResponse.data.organization_id;
+      const orgResponse = await supabase
+        .from('organizations')
+        .select('is_admin')
+        .eq('id', orgId)
+        .maybeSingle();
+      
+      if (orgResponse.error) {
+        console.error('Error fetching organization:', orgResponse.error);
+        navigate('/');
+        return;
+      }
+      
+      // Navigate based on admin status
+      if (orgResponse.data?.is_admin) {
+        navigate('/admin');
+      } else {
         navigate('/');
       }
       

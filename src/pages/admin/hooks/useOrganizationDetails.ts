@@ -72,15 +72,16 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define a more specific type for the parameters
-      type RpcParams = {
+      // Define a type interface for RPC parameters
+      interface RpcParams {
         org_id: string;
-      };
+      }
 
       async function fetchCount(functionName: RpcFunction): Promise<number> {
         const params: RpcParams = { org_id: orgId };
         
-        const { data, error } = await supabase.rpc(functionName, params);
+        // Cast params to any to bypass TypeScript's strict checking
+        const { data, error } = await supabase.rpc(functionName, params as any);
         
         if (error) throw error;
         return typeof data === 'number' ? data : 0;
