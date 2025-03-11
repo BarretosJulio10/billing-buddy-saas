@@ -19,15 +19,17 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    console.log("Starting admin user creation process");
+
     // Check for admin organization
     let { data: adminOrg, error: orgError } = await supabaseClient
       .from('organizations')
       .select('*')
       .eq('email', 'julioquintanilha@hotmail.com')
-      .single();
+      .maybeSingle();
 
     // If admin organization doesn't exist, create it
-    if (orgError && orgError.code === 'PGRST116') {
+    if (!adminOrg) {
       console.log("Creating admin organization");
       const { data: newOrg, error: newOrgError } = await supabaseClient
         .from('organizations')
@@ -37,7 +39,8 @@ serve(async (req) => {
           is_admin: true,
           subscription_status: 'permanent',
           subscription_due_date: new Date(new Date().setFullYear(new Date().getFullYear() + 10)).toISOString().split('T')[0],
-          gateway: 'mercadopago'
+          gateway: 'mercadopago',
+          blocked: false
         })
         .select()
         .single();
@@ -48,27 +51,24 @@ serve(async (req) => {
       }
       
       adminOrg = newOrg;
-    } else if (orgError) {
-      console.error("Error fetching admin organization:", orgError);
-      throw orgError;
+      console.log("Admin organization created:", adminOrg);
+    } else {
+      console.log("Found existing admin organization:", adminOrg);
     }
 
     // Check if admin user exists in auth
-    const { data: existingAuthUser, error: authFindError } = await supabaseClient.auth.admin.listUsers({
-      filters: {
-        email: 'julioquintanilha@hotmail.com',
-      },
-    });
+    const { data: existingUsers, error: authFindError } = await supabaseClient.auth.admin.listUsers();
 
-    let authUser;
-    
     if (authFindError) {
-      console.error("Error checking for existing auth user:", authFindError);
+      console.error("Error checking for existing auth users:", authFindError);
       throw authFindError;
     }
 
+    const adminUser = existingUsers?.users?.find(user => user.email === 'julioquintanilha@hotmail.com');
+    
     // If admin doesn't exist in auth, create it
-    if (!existingAuthUser || existingAuthUser.users.length === 0) {
+    let authUser;
+    if (!adminUser) {
       console.log("Creating admin user in auth");
       const { data, error: createError } = await supabaseClient.auth.admin.createUser({
         email: 'julioquintanilha@hotmail.com',
@@ -82,10 +82,11 @@ serve(async (req) => {
       }
       
       authUser = data.user;
+      console.log("Admin auth user created:", authUser);
     } else {
-      authUser = existingAuthUser.users[0];
+      authUser = adminUser;
       
-      // Reset password if admin exists but can't login
+      // Reset password for admin user
       console.log("Resetting admin password");
       const { error: updateError } = await supabaseClient.auth.admin.updateUserById(
         authUser.id,
@@ -96,6 +97,8 @@ serve(async (req) => {
         console.error("Error updating admin password:", updateError);
         throw updateError;
       }
+      
+      console.log("Admin password reset successfully");
     }
 
     // Check if admin exists in users table
@@ -131,6 +134,8 @@ serve(async (req) => {
         throw userError;
       }
 
+      console.log("Admin user created in users table:", userData);
+
       return new Response(
         JSON.stringify({ 
           message: "Admin user created successfully", 
@@ -143,6 +148,7 @@ serve(async (req) => {
       );
     }
 
+    console.log("Admin user verified and updated");
     return new Response(
       JSON.stringify({ 
         message: "Admin user verified and updated", 

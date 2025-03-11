@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -20,30 +21,30 @@ export function useAuthActions() {
       
       if (error) throw error;
 
-      // Special case for admin user
-      if (email === 'julioquintanilha@hotmail.com') {
-        navigate('/admin');
-        toast({
-          title: "Login successful",
-          description: "Welcome back, Admin!",
-        });
-        return;
-      }
+      // Get current user data
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error("User not found after login");
 
-      // Simple query to check organization admin status
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .select('is_admin')
-        .eq('email', email)
+      // Get organization data for the user
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('organization_id, organizations:organization_id(is_admin)')
+        .eq('id', user.id)
         .maybeSingle();
+      
+      if (userError) throw userError;
+      if (!userData) throw new Error("User data not found");
 
-      const redirectPath = orgData?.is_admin ? '/admin' : '/';
+      // Determine if user is admin and redirect accordingly
+      const isAdmin = userData.organizations?.is_admin === true;
+      const redirectPath = isAdmin ? '/admin' : '/';
       
       navigate(redirectPath);
 
       toast({
         title: "Login successful",
-        description: "Welcome back!",
+        description: isAdmin ? "Welcome back, Admin!" : "Welcome back!",
       });
     } catch (error: any) {
       console.error('Full login error details:', error);

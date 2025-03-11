@@ -34,7 +34,7 @@ export default function Login() {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [adminUserChecked, setAdminUserChecked] = useState(false);
+  const [adminSetupComplete, setAdminSetupComplete] = useState(false);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -58,12 +58,9 @@ export default function Login() {
       setIsLoading(true);
       
       // Special case for admin login
-      if (data.email === 'julioquintanilha@hotmail.com') {
+      if (data.email === 'julioquintanilha@hotmail.com' && !adminSetupComplete) {
         console.log('Attempting admin login...');
-        // Ensure admin account exists before trying to log in
-        if (!adminUserChecked) {
-          await createAdminUserIfNeeded();
-        }
+        await createAdminUserIfNeeded();
       }
 
       // Attempt sign in
@@ -121,9 +118,9 @@ export default function Login() {
           title: "Usuário admin configurado",
           description: "A conta de administrador foi configurada com sucesso",
         });
-        setAdminUserChecked(true);
+        setAdminSetupComplete(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to setup admin user:', error);
       toast({
         title: "Erro ao configurar usuário admin",
