@@ -50,25 +50,25 @@ const stats = [
 
 export function OverviewStats() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
       {stats.map((stat, index) => (
         <Card key={index} className="shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-x-2">
-              <div className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-muted-foreground">{stat.title}</span>
-                <span className="text-2xl font-bold">{stat.value}</span>
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-muted-foreground">{stat.title}</span>
+                <span className="text-xl font-bold">{stat.value}</span>
               </div>
-              <div className="rounded-full p-2 bg-primary/10">
-                <stat.icon className="h-5 w-5 text-primary" />
+              <div className="rounded-full p-1.5 bg-primary/10">
+                <stat.icon className="h-4 w-4 text-primary" />
               </div>
             </div>
-            <div className={`text-xs mt-3 ${stat.positive ? 'text-success' : 'text-destructive'}`}>
+            <div className={`text-xs mt-1 ${stat.positive ? 'text-success' : 'text-destructive'}`}>
               <span className="flex items-center">
                 {stat.positive ? (
-                  <ArrowUp className="mr-1 h-3 w-3" />
+                  <ArrowUp className="mr-1 h-2 w-2" />
                 ) : (
-                  <ArrowDown className="mr-1 h-3 w-3" />
+                  <ArrowDown className="mr-1 h-2 w-2" />
                 )}
                 {stat.change}
               </span>
