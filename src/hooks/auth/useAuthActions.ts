@@ -30,38 +30,35 @@ export function useAuthActions() {
         return;
       }
 
-      // Handle regular users
+      // Simplified approach to avoid nested queries that cause type depth issues
       let redirectPath = '/';
       
-      // Using a flat approach to avoid deep type instantiations
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('email', email)
-        .maybeSingle();
-      
-      if (userError) {
-        console.error('Error fetching user data:', userError);
-      } 
-      else if (userData && userData.organization_id) {
-        const orgId = userData.organization_id;
-        
-        // Separate database call to avoid nesting
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .select('is_admin')
-          .eq('id', orgId)
+      try {
+        // Step 1: Get user organization ID
+        const { data: user } = await supabase
+          .from('users')
+          .select('organization_id')
+          .eq('email', email)
           .maybeSingle();
-        
-        if (orgError) {
-          console.error('Error fetching organization data:', orgError);
-        } 
-        else if (orgData && orgData.is_admin) {
-          redirectPath = '/admin';
+          
+        if (user?.organization_id) {
+          // Step 2: Get organization details in a separate query
+          const { data: org } = await supabase
+            .from('organizations')
+            .select('is_admin')
+            .eq('id', user.organization_id)
+            .maybeSingle();
+            
+          // Set redirect path based on organization admin status
+          if (org?.is_admin) {
+            redirectPath = '/admin';
+          }
         }
+      } catch (queryError) {
+        console.error('Error determining user role:', queryError);
+        // Continue with default redirect if there's an error
       }
 
-      // Navigate based on determined path
       navigate(redirectPath);
 
       toast({

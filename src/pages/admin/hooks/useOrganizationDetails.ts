@@ -83,12 +83,11 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      // Create a properly typed parameters object
-      // Using Record to create a flexible object type that can accept string keys and any values
-      const params: Record<string, unknown> = { org_id: orgId };
-      
-      // Call the RPC function with the params object
-      const { data, error } = await supabase.rpc(functionName, params);
+      // Avoid type issues by using a generic type for the RPC call
+      const { data, error } = await supabase.rpc(
+        functionName, 
+        { org_id: orgId } as { org_id: string }
+      );
       
       if (error) throw error;
       
