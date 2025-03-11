@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -30,23 +31,29 @@ export function useAuthActions() {
         return;
       }
 
-      // For other users, check organization details
-      const { data: user } = await supabase
+      // Breaking up the chain to simplify types and avoid deep instantiation
+      let redirectPath = '/';
+      
+      // First query - get user
+      const userResponse = await supabase
         .from('users')
         .select('organization_id')
         .eq('email', email)
         .maybeSingle();
-
-      let redirectPath = '/';
       
-      if (user?.organization_id) {
-        const { data: org } = await supabase
+      if (userResponse.error) {
+        console.error('Error fetching user data:', userResponse.error);
+      } else if (userResponse.data?.organization_id) {
+        // Second query - get organization
+        const orgResponse = await supabase
           .from('organizations')
           .select('is_admin')
-          .eq('id', user.organization_id)
+          .eq('id', userResponse.data.organization_id)
           .maybeSingle();
-
-        if (org?.is_admin) {
+        
+        if (orgResponse.error) {
+          console.error('Error fetching organization data:', orgResponse.error);
+        } else if (orgResponse.data?.is_admin) {
           redirectPath = '/admin';
         }
       }

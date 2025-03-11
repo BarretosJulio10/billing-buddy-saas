@@ -10,6 +10,11 @@ interface OrganizationStats {
   collections: number;
 }
 
+// Define a type for the RPC parameters to avoid 'never' type errors
+interface OrgIdParam {
+  org_id: string;
+}
+
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -80,9 +85,10 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: string, orgId: string): Promise<number> => {
     try {
-      const { data, error } = await supabase.rpc(functionName, { 
-        org_id: orgId 
-      } as any); // Use type assertion to bypass strict typing
+      // Use our defined parameter type to fix the 'never' type error
+      const params: OrgIdParam = { org_id: orgId };
+      
+      const { data, error } = await supabase.rpc(functionName, params);
       
       if (error) throw error;
       
