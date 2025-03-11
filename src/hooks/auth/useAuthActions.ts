@@ -32,7 +32,7 @@ export function useAuthActions() {
       // Get organization data for the user
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('organization_id, email, organizations:organization_id(*)')
+        .select('organization_id, role, first_name, last_name')
         .eq('id', user.id)
         .maybeSingle();
       
@@ -47,9 +47,26 @@ export function useAuthActions() {
       }
 
       console.log("User data retrieved:", userData);
+      
+      // Now fetch the organization separately
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', userData.organization_id)
+        .maybeSingle();
+        
+      if (orgError) {
+        console.error("Error fetching organization data:", orgError);
+        throw orgError;
+      }
+      
+      if (!orgData) {
+        console.error("Organization not found:", userData.organization_id);
+        throw new Error("Organization data not found. Please contact support.");
+      }
 
       // Determine if user is admin and redirect accordingly
-      const isAdmin = userData.organizations?.is_admin === true;
+      const isAdmin = orgData.is_admin === true;
       console.log("Is admin:", isAdmin);
       
       const redirectPath = isAdmin ? '/admin' : '/';
