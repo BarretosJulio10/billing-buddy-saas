@@ -135,34 +135,44 @@ export default function AdminOrganizationDetail() {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Fetch customer count using simpler query to avoid deep type instantiation
-      const customersResult = await supabase
+      // Use simpler approach with count() function to avoid deep type instantiation
+      // Count customers
+      const { count: customersCount, error: customersError } = await supabase
         .from('customers')
-        .select('id', { count: 'exact', head: false })
+        .select('*', { count: 'exact', head: true })
         .eq('organization_id', orgId)
         .is('deleted_at', null);
 
-      // Fetch invoice count using simpler query to avoid deep type instantiation
-      const invoicesResult = await supabase
+      // Count invoices
+      const { count: invoicesCount, error: invoicesError } = await supabase
         .from('invoices')
-        .select('id', { count: 'exact', head: false })
+        .select('*', { count: 'exact', head: true })
         .eq('organization_id', orgId)
         .is('deleted_at', null);
 
-      // Fetch collection rules count using simpler query to avoid deep type instantiation
-      const collectionsResult = await supabase
+      // Count collection rules
+      const { count: collectionsCount, error: collectionsError } = await supabase
         .from('collection_rules')
-        .select('id', { count: 'exact', head: false })
+        .select('*', { count: 'exact', head: true })
         .eq('organization_id', orgId)
         .is('deleted_at', null);
+
+      if (customersError) console.error('Error counting customers:', customersError);
+      if (invoicesError) console.error('Error counting invoices:', invoicesError);
+      if (collectionsError) console.error('Error counting collections:', collectionsError);
 
       setStats({
-        customers: customersResult.count || 0,
-        invoices: invoicesResult.count || 0,
-        collections: collectionsResult.count || 0
+        customers: customersCount || 0,
+        invoices: invoicesCount || 0,
+        collections: collectionsCount || 0
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);
+      setStats({
+        customers: 0,
+        invoices: 0,
+        collections: 0
+      });
     }
   };
 
