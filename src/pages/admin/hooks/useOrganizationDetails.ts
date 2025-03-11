@@ -77,10 +77,10 @@ export function useOrganizationDetails(id: string | undefined) {
       // Create a properly typed parameter object
       const params: OrgIdParam = { org_id: orgId };
 
-      // Execute RPC calls with the correctly typed parameter
-      const customersPromise = supabase.rpc('count_customers_by_org', params);
-      const invoicesPromise = supabase.rpc('count_invoices_by_org', params);
-      const collectionsPromise = supabase.rpc('count_collections_by_org', params);
+      // Add explicit type assertions to resolve parameter type errors
+      const customersPromise = supabase.rpc('count_customers_by_org', params as any);
+      const invoicesPromise = supabase.rpc('count_invoices_by_org', params as any);
+      const collectionsPromise = supabase.rpc('count_collections_by_org', params as any);
       
       const [
         customersResponse, 

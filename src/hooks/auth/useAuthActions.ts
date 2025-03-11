@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -29,6 +30,12 @@ export function useAuthActions() {
         console.log('Admin user identified, redirecting to admin dashboard');
         navigate('/admin');
       } else {
+        // Using the correct typing approach to avoid circular dependencies
+        type UserWithOrg = {
+          email: string;
+          organizations: { is_admin: boolean } | null;
+        };
+        
         const { data: userData, error: userDataError } = await supabase
           .from('users')
           .select('*, organizations:organization_id(*)')
@@ -39,7 +46,8 @@ export function useAuthActions() {
           console.error('Error fetching user data:', userDataError);
         }
         
-        const isOrgAdmin = userData?.organizations?.is_admin || false;
+        const typedUserData = userData as UserWithOrg | null;
+        const isOrgAdmin = typedUserData?.organizations?.is_admin || false;
         
         if (isOrgAdmin) {
           navigate('/admin');
