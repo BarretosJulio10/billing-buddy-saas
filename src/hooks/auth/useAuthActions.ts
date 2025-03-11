@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -34,36 +33,32 @@ export function useAuthActions() {
       // Default redirect path
       let redirectPath = '/';
       
-      try {
-        // Get user organization ID - avoid nesting queries
-        const userResult = await supabase
-          .from('users')
-          .select('organization_id')
-          .eq('email', email)
+      // Fetch user data
+      const userResult = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('email', email)
+        .maybeSingle();
+        
+      if (userResult.error) {
+        console.error('Error fetching user:', userResult.error);
+      } 
+      else if (userResult.data && userResult.data.organization_id) {
+        const orgId = userResult.data.organization_id;
+        
+        // Fetch organization data
+        const orgResult = await supabase
+          .from('organizations')
+          .select('is_admin')
+          .eq('id', orgId)
           .maybeSingle();
           
-        if (userResult.error) {
-          console.error('Error fetching user:', userResult.error);
-        } 
-        else if (userResult.data?.organization_id) {
-          const orgId = userResult.data.organization_id;
-          
-          // Get organization admin status in a separate query
-          const orgResult = await supabase
-            .from('organizations')
-            .select('is_admin')
-            .eq('id', orgId)
-            .maybeSingle();
-            
-          if (orgResult.error) {
-            console.error('Error fetching organization:', orgResult.error);
-          }
-          else if (orgResult.data) {
-            redirectPath = orgResult.data.is_admin ? '/admin' : '/';
-          }
+        if (orgResult.error) {
+          console.error('Error fetching organization:', orgResult.error);
         }
-      } catch (err) {
-        console.error('Error during redirection logic:', err);
+        else if (orgResult.data && orgResult.data.is_admin) {
+          redirectPath = '/admin';
+        }
       }
       
       // Navigate based on the determined path

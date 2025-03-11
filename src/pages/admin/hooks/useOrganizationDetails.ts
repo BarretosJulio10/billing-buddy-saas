@@ -69,27 +69,26 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define the RPC function names and parameter type
-      type CountFunctionName = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
-      
-      // Define the parameters type explicitly
-      interface RpcParams {
-        org_id: string;
-      }
+      // Define the RPC function names as string literals
+      const countCustomersFunc = 'count_customers_by_org';
+      const countInvoicesFunc = 'count_invoices_by_org';
+      const countCollectionsFunc = 'count_collections_by_org';
       
       // Create a typed function to fetch counts
-      async function fetchCount(functionName: CountFunctionName): Promise<number> {
-        const params: RpcParams = { org_id: orgId };
-        const { data, error } = await supabase.rpc(functionName, params);
+      async function fetchCount(functionName: string): Promise<number> {
+        const { data, error } = await supabase.rpc(
+          functionName, 
+          { org_id: orgId }
+        );
         
         if (error) throw error;
         return typeof data === 'number' ? data : 0;
       }
 
       const [customers, invoices, collections] = await Promise.all([
-        fetchCount('count_customers_by_org'),
-        fetchCount('count_invoices_by_org'),
-        fetchCount('count_collections_by_org')
+        fetchCount(countCustomersFunc),
+        fetchCount(countInvoicesFunc),
+        fetchCount(countCollectionsFunc)
       ]);
       
       setStats({
