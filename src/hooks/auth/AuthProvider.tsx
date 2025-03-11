@@ -1,3 +1,4 @@
+
 import { createContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
@@ -7,6 +8,7 @@ import { Organization, User as AppUser } from '@/types/organization';
 import { AuthContextType } from './types';
 import { fetchUserData } from './authUtils';
 
+// Create context with undefined initial value
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -203,7 +205,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const value: AuthContextType = {
+  // Explicitly type the value to avoid circular references
+  const contextValue: AuthContextType = {
     session,
     user,
     appUser,
@@ -218,5 +221,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refetchUserData
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 }
