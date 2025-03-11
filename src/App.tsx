@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Toaster } from '@/components/ui/toaster';
@@ -35,7 +35,9 @@ function App() {
           
           <Route path="/" element={
             <PrivateRoute>
-              <AppLayout />
+              <AppLayout>
+                <Outlet />
+              </AppLayout>
             </PrivateRoute>
           }>
             <Route index element={<Index />} />
