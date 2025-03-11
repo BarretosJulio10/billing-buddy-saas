@@ -146,7 +146,7 @@ export async function fetchUserData(userId: string): Promise<{
     return {
       appUser: appUserData,
       organization: organizationData,
-      isAdmin: organizationData.isAdmin || false,
+      isAdmin: userData.role === 'admin',
       isBlocked: organizationData.blocked || false,
       subscriptionExpiringSoon
     };
