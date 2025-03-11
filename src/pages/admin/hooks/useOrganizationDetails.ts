@@ -10,6 +10,11 @@ interface OrganizationStats {
   collections: number;
 }
 
+// Define the type for RPC function parameters
+interface RpcParams {
+  org_id: string;
+}
+
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -69,17 +74,13 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Definindo explicitamente o tipo do objeto de parâmetros
-      interface RpcParams {
-        org_id: string;
-      }
-      
+      // Define o objeto de parâmetros com tipagem correta
       const params: RpcParams = { org_id: orgId };
       
-      // Chamando as funções RPC com tipagem correta
-      const customersPromise = supabase.rpc('count_customers_by_org', params);
-      const invoicesPromise = supabase.rpc('count_invoices_by_org', params);
-      const collectionsPromise = supabase.rpc('count_collections_by_org', params);
+      // Como temos a tipagem definida corretamente, não precisamos de type assertion
+      const customersPromise = supabase.rpc<number>('count_customers_by_org', params);
+      const invoicesPromise = supabase.rpc<number>('count_invoices_by_org', params);
+      const collectionsPromise = supabase.rpc<number>('count_collections_by_org', params);
       
       const [
         customersResponse, 

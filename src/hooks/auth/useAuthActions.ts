@@ -12,7 +12,15 @@ interface UserOrganizationData {
   };
 }
 
-export function useAuthActions() {
+// Define a clear return type to avoid excessive type instantiation
+interface AuthActions {
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, orgName: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  loading: boolean;
+}
+
+export function useAuthActions(): AuthActions {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
