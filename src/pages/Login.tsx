@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ export default function Login() {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [adminUserChecked, setAdminUserChecked] = useState(false);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -59,6 +60,10 @@ export default function Login() {
       // Special case for admin login
       if (data.email === 'julioquintanilha@hotmail.com') {
         console.log('Attempting admin login...');
+        // Ensure admin account exists before trying to log in
+        if (!adminUserChecked) {
+          await createAdminUserIfNeeded();
+        }
       }
 
       // Attempt sign in
@@ -100,21 +105,40 @@ export default function Login() {
   // Function to create admin user if it doesn't exist
   const createAdminUserIfNeeded = async () => {
     try {
-      const { error } = await supabase.functions.invoke('create-admin-user');
+      setIsLoading(true);
+      const { data, error } = await supabase.functions.invoke('create-admin-user');
+      
       if (error) {
         console.error('Error creating admin user:', error);
+        toast({
+          title: "Erro ao configurar usuário admin",
+          description: error.message || "Não foi possível configurar a conta de administrador",
+          variant: "destructive",
+        });
       } else {
-        console.log('Admin user setup completed');
+        console.log('Admin user setup completed:', data);
+        toast({
+          title: "Usuário admin configurado",
+          description: "A conta de administrador foi configurada com sucesso",
+        });
+        setAdminUserChecked(true);
       }
     } catch (error) {
       console.error('Failed to setup admin user:', error);
+      toast({
+        title: "Erro ao configurar usuário admin",
+        description: "Ocorreu um erro ao configurar a conta de administrador",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Call once when the component mounts
-  useState(() => {
+  useEffect(() => {
     createAdminUserIfNeeded();
-  });
+  }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
