@@ -98,7 +98,6 @@ export function useSignIn() {
       }
       
       // Regular user login flow
-      // Try to sign in
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -186,9 +185,12 @@ export function useSignIn() {
       const isAdmin = orgData.is_admin === true;
       console.log("Is admin:", isAdmin);
       
-      const redirectPath = isAdmin ? '/admin' : '/';
-      
-      navigate(redirectPath);
+      // Modificado para garantir que admin vai para o painel admin
+      if (isAdmin || email === 'julioquintanilha@hotmail.com') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
 
       toast({
         title: "Login realizado com sucesso",
