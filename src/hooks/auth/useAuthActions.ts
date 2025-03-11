@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -35,35 +34,29 @@ export function useAuthActions() {
       let redirectPath = '/';
       
       try {
-        // Query user data without nesting to avoid excessive type instantiation
-        const userQuery = await supabase
+        // Get user data - avoid nested queries and use simplified approach
+        const { data: userData, error: userError } = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
-          .limit(1);
+          .single();
           
-        if (userQuery.error) {
-          console.error('Error fetching user:', userQuery.error);
+        if (userError) {
+          console.error('Error fetching user:', userError);
         } 
-        else if (userQuery.data && userQuery.data.length > 0) {
-          const orgId = userQuery.data[0].organization_id;
-          
-          if (orgId) {
-            // Separate query for organization
-            const orgQuery = await supabase
-              .from('organizations')
-              .select('is_admin')
-              .eq('id', orgId)
-              .limit(1);
-              
-            if (orgQuery.error) {
-              console.error('Error fetching organization:', orgQuery.error);
-            }
-            else if (orgQuery.data && orgQuery.data.length > 0) {
-              // Check admin status
-              const isAdmin = orgQuery.data[0].is_admin;
-              redirectPath = isAdmin ? '/admin' : '/';
-            }
+        else if (userData?.organization_id) {
+          // Separate organization query to avoid nesting
+          const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
+            .select('is_admin')
+            .eq('id', userData.organization_id)
+            .single();
+            
+          if (orgError) {
+            console.error('Error fetching organization:', orgError);
+          }
+          else if (orgData) {
+            redirectPath = orgData.is_admin ? '/admin' : '/';
           }
         }
       } catch (err) {

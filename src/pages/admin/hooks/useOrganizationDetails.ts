@@ -69,13 +69,14 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Use explicit typing for RPC functions to satisfy TypeScript
-      type CountFunction = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
+      // Define exact types for our RPC function names
+      type CountFunctionName = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
       
-      async function fetchCount(functionName: CountFunction): Promise<number> {
+      // Create a typed function to fetch counts
+      async function fetchCount(functionName: CountFunctionName): Promise<number> {
         const { data, error } = await supabase.rpc(
           functionName, 
-          { org_id: orgId }
+          { org_id: orgId } as { org_id: string }
         );
         
         if (error) throw error;
