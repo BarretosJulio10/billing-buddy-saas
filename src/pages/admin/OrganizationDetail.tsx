@@ -135,37 +135,31 @@ export default function AdminOrganizationDetail() {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Fetch customer count
-      const { count: customersCount, error: customersError } = await supabase
+      // Fetch customer count using simpler query to avoid deep type instantiation
+      const customersResult = await supabase
         .from('customers')
-        .select('*', { count: 'exact' })
+        .select('id', { count: 'exact', head: false })
         .eq('organization_id', orgId)
         .is('deleted_at', null);
 
-      if (customersError) throw customersError;
-
-      // Fetch invoice count
-      const { count: invoicesCount, error: invoicesError } = await supabase
+      // Fetch invoice count using simpler query to avoid deep type instantiation
+      const invoicesResult = await supabase
         .from('invoices')
-        .select('*', { count: 'exact' })
+        .select('id', { count: 'exact', head: false })
         .eq('organization_id', orgId)
         .is('deleted_at', null);
 
-      if (invoicesError) throw invoicesError;
-
-      // Fetch collection rules count
-      const { count: collectionsCount, error: collectionsError } = await supabase
+      // Fetch collection rules count using simpler query to avoid deep type instantiation
+      const collectionsResult = await supabase
         .from('collection_rules')
-        .select('*', { count: 'exact' })
+        .select('id', { count: 'exact', head: false })
         .eq('organization_id', orgId)
         .is('deleted_at', null);
-
-      if (collectionsError) throw collectionsError;
 
       setStats({
-        customers: customersCount || 0,
-        invoices: invoicesCount || 0,
-        collections: collectionsCount || 0
+        customers: customersResult.count || 0,
+        invoices: invoicesResult.count || 0,
+        collections: collectionsResult.count || 0
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);
