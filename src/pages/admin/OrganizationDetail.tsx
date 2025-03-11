@@ -107,11 +107,11 @@ export default function AdminOrganizationDetail() {
           phone: data.phone,
           createdAt: data.created_at,
           updatedAt: data.updated_at,
-          subscriptionStatus: data.subscription_status,
+          subscriptionStatus: data.subscription_status as 'active' | 'overdue' | 'canceled' | 'permanent',
           subscriptionDueDate: data.subscription_due_date,
           subscriptionAmount: data.subscription_amount,
           lastPaymentDate: data.last_payment_date,
-          gateway: data.gateway,
+          gateway: data.gateway as 'mercadopago' | 'asaas',
           isAdmin: data.is_admin,
           blocked: data.blocked
         };

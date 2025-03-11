@@ -54,11 +54,11 @@ export default function AdminOrganizations() {
           phone: org.phone,
           createdAt: org.created_at,
           updatedAt: org.updated_at,
-          subscriptionStatus: org.subscription_status,
+          subscriptionStatus: org.subscription_status as 'active' | 'overdue' | 'canceled' | 'permanent',
           subscriptionDueDate: org.subscription_due_date,
           subscriptionAmount: org.subscription_amount,
           lastPaymentDate: org.last_payment_date,
-          gateway: org.gateway,
+          gateway: org.gateway as 'mercadopago' | 'asaas',
           isAdmin: org.is_admin,
           blocked: org.blocked
         }));

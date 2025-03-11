@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Fetch user data with organization details
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('*, organization:organizations(*)')
+        .select('*, organizations:organization_id(*)')
         .eq('id', userId)
         .single();
 
@@ -52,26 +52,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           organizationId: userData.organization_id,
           firstName: userData.first_name,
           lastName: userData.last_name,
-          email: userData.organization.email,
-          role: userData.role,
+          email: userData.organizations.email,
+          role: userData.role as 'admin' | 'user',
           createdAt: userData.created_at,
           updatedAt: userData.updated_at
         };
 
         const orgData: Organization = {
-          id: userData.organization.id,
-          name: userData.organization.name,
-          email: userData.organization.email,
-          phone: userData.organization.phone,
-          createdAt: userData.organization.created_at,
-          updatedAt: userData.organization.updated_at,
-          subscriptionStatus: userData.organization.subscription_status,
-          subscriptionDueDate: userData.organization.subscription_due_date,
-          subscriptionAmount: userData.organization.subscription_amount,
-          lastPaymentDate: userData.organization.last_payment_date,
-          gateway: userData.organization.gateway,
-          isAdmin: userData.organization.is_admin,
-          blocked: userData.organization.blocked
+          id: userData.organizations.id,
+          name: userData.organizations.name,
+          email: userData.organizations.email,
+          phone: userData.organizations.phone,
+          createdAt: userData.organizations.created_at,
+          updatedAt: userData.organizations.updated_at,
+          subscriptionStatus: userData.organizations.subscription_status as 'active' | 'overdue' | 'canceled' | 'permanent',
+          subscriptionDueDate: userData.organizations.subscription_due_date,
+          subscriptionAmount: userData.organizations.subscription_amount,
+          lastPaymentDate: userData.organizations.last_payment_date,
+          gateway: userData.organizations.gateway as 'mercadopago' | 'asaas',
+          isAdmin: userData.organizations.is_admin,
+          blocked: userData.organizations.blocked
         };
 
         setAppUser(appUserData);
@@ -141,11 +141,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Redirect based on user type
       const { data: userData } = await supabase
         .from('users')
-        .select('*, organization:organizations(*)')
+        .select('*, organizations:organization_id(*)')
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single();
 
-      if (userData?.organization?.is_admin) {
+      if (userData?.organizations?.is_admin) {
         navigate('/admin');
       } else {
         navigate('/');

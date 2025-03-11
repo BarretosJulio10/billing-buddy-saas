@@ -1,43 +1,41 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Organization } from '@/types/organization';
+import { Organization, SubscriptionDetails } from '@/types/organization';
 import { useAuth } from './useAuth';
 
 interface OrganizationContextType {
   organization: Organization | null;
-  isLoading: boolean;
-  error: Error | null;
+  loading: boolean;
+  error: string | null;
+  subscriptionDetails: SubscriptionDetails | null;
   refreshOrganization: () => Promise<void>;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
 
 export function OrganizationProvider({ children }: { children: React.ReactNode }) {
+  const { user, appUser } = useAuth();
   const [organization, setOrganization] = useState<Organization | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const { organization: authOrganization } = useAuth();
+  const [subscriptionDetails, setSubscriptionDetails] = useState<SubscriptionDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchOrganization = async () => {
-    if (authOrganization) {
-      setOrganization(authOrganization);
-      setIsLoading(false);
+    if (!user || !appUser?.organizationId) {
+      setLoading(false);
       return;
     }
 
     try {
-      setIsLoading(true);
-      setError(null);
-      
-      const { data, error: fetchError } = await supabase
+      setLoading(true);
+      const { data, error } = await supabase
         .from('organizations')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .eq('id', appUser.organizationId)
         .single();
 
-      if (fetchError) throw fetchError;
+      if (error) throw error;
 
       if (data) {
         const org: Organization = {
@@ -47,35 +45,48 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           phone: data.phone,
           createdAt: data.created_at,
           updatedAt: data.updated_at,
-          subscriptionStatus: data.subscription_status,
+          subscriptionStatus: data.subscription_status as 'active' | 'overdue' | 'canceled' | 'permanent',
           subscriptionDueDate: data.subscription_due_date,
           subscriptionAmount: data.subscription_amount,
           lastPaymentDate: data.last_payment_date,
-          gateway: data.gateway,
+          gateway: data.gateway as 'mercadopago' | 'asaas',
           isAdmin: data.is_admin,
           blocked: data.blocked
         };
+        
         setOrganization(org);
+        
+        // Set subscription details
+        setSubscriptionDetails({
+          status: org.subscriptionStatus,
+          dueDate: org.subscriptionDueDate,
+          amount: org.subscriptionAmount,
+          lastPaymentDate: org.lastPaymentDate,
+          gateway: org.gateway,
+          blocked: org.blocked
+        });
       }
     } catch (err: any) {
-      setError(err);
       console.error('Error fetching organization:', err);
+      setError(err.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchOrganization();
-  }, [authOrganization]);
-
-  const refreshOrganization = async () => {
-    await fetchOrganization();
-  };
+  }, [user, appUser]);
 
   return (
     <OrganizationContext.Provider
-      value={{ organization, isLoading, error, refreshOrganization }}
+      value={{
+        organization,
+        loading,
+        error,
+        subscriptionDetails,
+        refreshOrganization: fetchOrganization
+      }}
     >
       {children}
     </OrganizationContext.Provider>
