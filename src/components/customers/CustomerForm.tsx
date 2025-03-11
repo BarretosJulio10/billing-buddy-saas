@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Switch } from "@/components/ui/switch";
+import { Customer } from "./CustomerTable";
 
 const customerSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
@@ -26,22 +27,49 @@ const customerSchema = z.object({
 
 type CustomerFormData = z.infer<typeof customerSchema>;
 
-export function CustomerForm() {
+interface CustomerFormProps {
+  initialData?: Customer;
+  onSubmit: (data: CustomerFormData) => void;
+  onCancel?: () => void;
+}
+
+export function CustomerForm({ initialData, onSubmit, onCancel }: CustomerFormProps) {
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
-    defaultValues: {
+    defaultValues: initialData || {
+      name: "",
+      email: "",
+      phone: "",
+      document: "",
+      address: "",
       isActive: true,
     },
   });
 
-  const onSubmit = (data: CustomerFormData) => {
-    console.log(data);
-    // Será integrado com Supabase posteriormente
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    }
+  }, [initialData, form]);
+
+  const handleSubmit = (data: CustomerFormData) => {
+    onSubmit(data);
+    if (!initialData) {
+      form.reset({
+        name: "",
+        email: "",
+        phone: "",
+        document: "",
+        address: "",
+        isActive: true,
+      });
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="name"
@@ -129,9 +157,16 @@ export function CustomerForm() {
           )}
         />
 
-        <Button type="submit" className="w-full">
-          Salvar Cliente
-        </Button>
+        <div className="flex gap-2 justify-end">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
+          )}
+          <Button type="submit">
+            {initialData ? "Atualizar Cliente" : "Salvar Cliente"}
+          </Button>
+        </div>
       </form>
     </Form>
   );
