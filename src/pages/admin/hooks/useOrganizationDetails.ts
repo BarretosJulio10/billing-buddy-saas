@@ -72,9 +72,11 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
+      // Define a generic type for the function to avoid type errors
       async function fetchCount(functionName: RpcFunction): Promise<number> {
-        // Use a simple object literal with any type for parameters to avoid type errors
-        const params = { org_id: orgId } as any;
+        // Use a properly typed record for parameters
+        type RpcParams = Record<string, unknown>;
+        const params: RpcParams = { org_id: orgId };
         
         const { data, error } = await supabase.rpc(functionName, params);
         

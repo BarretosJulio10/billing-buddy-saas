@@ -26,28 +26,33 @@ export function useAuthActions() {
         return;
       }
 
-      // Check if user exists and get organization info
-      const { data: userData } = await supabase
+      // Fetch user and organization data separately to avoid deep type nesting
+      const userQuery = await supabase
         .from('users')
         .select('organization_id')
         .eq('email', email)
         .single();
-
-      // Simplified conditional logic to avoid deep type nesting
-      if (!userData?.organization_id) {
+      
+      if (userQuery.error || !userQuery.data?.organization_id) {
         navigate('/');
         return;
       }
       
-      // Get organization data in a separate query
-      const { data: orgData } = await supabase
+      const organizationId = userQuery.data.organization_id;
+      
+      const orgQuery = await supabase
         .from('organizations')
         .select('is_admin')
-        .eq('id', userData.organization_id)
+        .eq('id', organizationId)
         .single();
       
+      if (orgQuery.error) {
+        navigate('/');
+        return;
+      }
+      
       // Navigate based on admin status
-      if (orgData?.is_admin) {
+      if (orgQuery.data?.is_admin) {
         navigate('/admin');
       } else {
         navigate('/');
