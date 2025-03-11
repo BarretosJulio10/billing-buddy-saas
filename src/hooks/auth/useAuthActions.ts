@@ -31,31 +31,32 @@ export function useAuthActions() {
         return;
       }
 
-      // To avoid deep type instantiation, simplify the logic with separate queries
+      // Restructure the logic to avoid deep type instantiation
       let redirectPath = '/';
       
-      // First get the user's organization ID
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('email', email)
-        .maybeSingle();
-      
-      if (userError) {
-        console.error('Error fetching user data:', userError);
-      } else if (userData?.organization_id) {
-        // Then check if the organization is admin
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .select('is_admin')
-          .eq('id', userData.organization_id)
-          .maybeSingle();
+      try {
+        // First get the user's organization ID
+        const { data: userData } = await supabase
+          .from('users')
+          .select('organization_id')
+          .eq('email', email)
+          .single();
         
-        if (orgError) {
-          console.error('Error fetching organization data:', orgError);
-        } else if (orgData?.is_admin) {
-          redirectPath = '/admin';
+        if (userData?.organization_id) {
+          // Then check if the organization is admin
+          const { data: orgData } = await supabase
+            .from('organizations')
+            .select('is_admin')
+            .eq('id', userData.organization_id)
+            .single();
+          
+          if (orgData?.is_admin) {
+            redirectPath = '/admin';
+          }
         }
+      } catch (queryError) {
+        console.error('Error during redirection logic:', queryError);
+        // Default to home page if there's an error in the redirection logic
       }
 
       navigate(redirectPath);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
@@ -83,13 +82,8 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      // Fix the rpc call by providing the correct generic type arguments
-      // For rpc calls, we need both the return type and parameters type
-      interface RpcParams {
-        org_id: string;
-      }
-      
-      const { data, error } = await supabase.rpc<number, RpcParams>(
+      // Fix the rpc call by providing the correct type parameters
+      const { data, error } = await supabase.rpc(
         functionName, 
         { org_id: orgId }
       );
