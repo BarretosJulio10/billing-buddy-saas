@@ -10,15 +10,6 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define the proper types for the RPC function calls
-interface CountResult {
-  count: number;
-}
-
-interface RpcParams {
-  org_id: string;
-}
-
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -91,15 +82,17 @@ export function useOrganizationDetails(id: string | undefined) {
   // Helper function to handle RPC calls properly
   const fetchSingleStat = async (functionName: string, orgId: string): Promise<number> => {
     try {
+      // Use a more generic approach that doesn't rely on strict typing for RPC calls
       const { data, error } = await supabase
         .rpc(functionName, { org_id: orgId });
       
       if (error) throw error;
       
-      // Handle the response safely
-      return typeof data === 'object' && data !== null && 'count' in data 
-        ? (data.count as number) 
-        : 0;
+      // Handle the response safely by checking the structure without relying on types
+      if (data && typeof data === 'object' && 'count' in data) {
+        return Number(data.count) || 0;
+      }
+      return 0;
     } catch (error) {
       console.error(`Error in ${functionName}:`, error);
       return 0;

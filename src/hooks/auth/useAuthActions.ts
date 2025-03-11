@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -34,25 +35,25 @@ export function useAuthActions() {
       let redirectPath = '/';
       
       try {
-        // Simplified approach to avoid deep type instantiation
-        const { data: userData, error: userError } = await supabase
+        // Use a more direct approach with explicit error handling to avoid deep types
+        const userQuery = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
-          .single();
+          .maybeSingle();
         
-        if (userError) {
-          console.error('Error fetching user:', userError);
-        } else if (userData?.organization_id) {
-          const { data: orgData, error: orgError } = await supabase
+        if (userQuery.error) {
+          console.error('Error fetching user:', userQuery.error);
+        } else if (userQuery.data?.organization_id) {
+          const orgQuery = await supabase
             .from('organizations')
             .select('is_admin')
-            .eq('id', userData.organization_id)
-            .single();
+            .eq('id', userQuery.data.organization_id)
+            .maybeSingle();
             
-          if (orgError) {
-            console.error('Error fetching organization:', orgError);
-          } else if (orgData?.is_admin) {
+          if (orgQuery.error) {
+            console.error('Error fetching organization:', orgQuery.error);
+          } else if (orgQuery.data?.is_admin) {
             redirectPath = '/admin';
           }
         }
