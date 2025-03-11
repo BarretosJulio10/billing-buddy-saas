@@ -16,6 +16,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -30,6 +32,8 @@ const registerSchema = z.object({
 
 export default function Login() {
   const { signIn, signUp } = useAuth();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -49,14 +53,68 @@ export default function Login() {
   });
 
   const handleLogin = async (data: z.infer<typeof loginSchema>) => {
-    await signIn(data.email, data.password);
+    try {
+      setIsLoading(true);
+      
+      // Special case for admin login
+      if (data.email === 'julioquintanilha@hotmail.com') {
+        console.log('Attempting admin login...');
+      }
+
+      // Attempt sign in
+      await signIn(data.email, data.password);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast({
+        title: "Erro ao fazer login",
+        description: error.message || "Verifique suas credenciais e tente novamente",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegister = async (data: z.infer<typeof registerSchema>) => {
-    await signUp(data.email, data.password, data.organizationName);
-    // Reset form após envio
-    registerForm.reset();
+    try {
+      setIsLoading(true);
+      await signUp(data.email, data.password, data.organizationName);
+      // Reset form após envio
+      registerForm.reset();
+      toast({
+        title: "Conta criada com sucesso",
+        description: "Você já pode fazer login no sistema.",
+      });
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      toast({
+        title: "Erro ao criar conta",
+        description: error.message || "Ocorreu um erro ao criar sua conta",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // Function to create admin user if it doesn't exist
+  const createAdminUserIfNeeded = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('create-admin-user');
+      if (error) {
+        console.error('Error creating admin user:', error);
+      } else {
+        console.log('Admin user setup completed');
+      }
+    } catch (error) {
+      console.error('Failed to setup admin user:', error);
+    }
+  };
+
+  // Call once when the component mounts
+  useState(() => {
+    createAdminUserIfNeeded();
+  });
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -104,8 +162,8 @@ export default function Login() {
                     )}
                   />
                   
-                  <Button type="submit" className="w-full" disabled={loginForm.formState.isSubmitting}>
-                    {loginForm.formState.isSubmitting ? "Entrando..." : "Entrar"}
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Entrando..." : "Entrar"}
                   </Button>
                 </form>
               </Form>
@@ -155,8 +213,8 @@ export default function Login() {
                     )}
                   />
                   
-                  <Button type="submit" className="w-full" disabled={registerForm.formState.isSubmitting}>
-                    {registerForm.formState.isSubmitting ? "Cadastrando..." : "Cadastrar"}
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Cadastrando..." : "Cadastrar"}
                   </Button>
                 </form>
               </Form>

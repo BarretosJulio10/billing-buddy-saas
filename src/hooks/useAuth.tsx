@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -37,7 +36,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch user data with organization details
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*, organizations:organization_id(*)')
@@ -79,7 +77,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAdmin(orgData.isAdmin);
         setIsBlocked(orgData.blocked);
 
-        // Check if subscription is about to expire
         const dueDate = new Date(orgData.subscriptionDueDate);
         const today = new Date();
         const diffTime = dueDate.getTime() - today.getTime();
@@ -99,7 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -110,7 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -131,21 +126,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log(`Attempting to sign in: ${email}`);
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Sign in error:', error);
+        throw error;
+      }
       
-      // Redirect based on user type
-      const { data: userData } = await supabase
+      const { data: userData, error: userDataError } = await supabase
         .from('users')
         .select('*, organizations:organization_id(*)')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (userData?.organizations?.is_admin) {
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (userDataError && userDataError.code !== 'PGRST116') {
+        console.error('Error fetching user data:', userDataError);
+      }
+      
+      const isAdminUser = userData?.organizations?.is_admin || 
+                           email === 'julioquintanilha@hotmail.com';
+      
+      if (isAdminUser) {
+        console.log('Admin user identified, redirecting to admin dashboard');
         navigate('/admin');
       } else {
         navigate('/');
@@ -156,17 +163,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "Welcome back!",
       });
     } catch (error: any) {
+      console.error('Full login error details:', error);
       toast({
         title: "Login error",
-        description: error.message,
+        description: error.message || "Authentication failed",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
   const signUp = async (email: string, password: string, orgName: string) => {
     try {
-      // Check if email is already in use
       const { data: emailCheck } = await supabase
         .from('organizations')
         .select('email')
@@ -177,7 +185,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('This email is already in use');
       }
 
-      // Create Auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -186,7 +193,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (authError) throw authError;
       
       if (authData.user) {
-        // Create organization
         const { data: orgData, error: orgError } = await supabase
           .from('organizations')
           .insert({
@@ -199,7 +205,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
         if (orgError) throw orgError;
         
-        // Create user associated with organization
         const { error: userError } = await supabase
           .from('users')
           .insert({
