@@ -38,7 +38,7 @@ const Collections = () => {
               Novo Modelo
             </Button>
           </SheetTrigger>
-          <SheetContent className="w-full sm:max-w-[540px]">
+          <SheetContent className="w-full sm:max-w-[540px] overflow-y-auto pb-20">
             <SheetHeader>
               <SheetTitle>Novo Modelo de Cobrança</SheetTitle>
             </SheetHeader>
