@@ -7,12 +7,10 @@
  * it can be triggered manually or simulated in the frontend.
  */
 
-import { 
-  messageHistoryApi, 
-  messagingSettingsApi,
-  createMessageFromTemplate,
-  messagingUtils
-} from '../api/endpoints';
+import { messageHistoryApi } from '../api/messageHistoryApi';
+import { messagingSettingsApi } from '../api/messagingSettingsApi';
+import { createMessageFromTemplate } from './messageTemplates';
+import { messagingUtils } from './messagingUtils';
 
 // Simulated function to run the cron job
 export const runMessagingCron = async () => {
