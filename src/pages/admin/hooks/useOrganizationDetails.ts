@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
@@ -81,7 +82,8 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      const { data, error } = await supabase.rpc(
+      // Use type assertion for both the function name and parameters
+      const { data, error } = await (supabase.rpc as any)(
         functionName,
         { org_id: orgId },
         { count: 'exact' }
