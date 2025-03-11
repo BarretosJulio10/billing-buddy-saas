@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,19 +77,23 @@ export default function AdminOrganizationDetail() {
 
   const fetchStats = async (orgId: string) => {
     try {
-      type RpcParams = { org_id: string };
-      
-      const { data: customersCount, error: customersError } = await supabase.rpc(
+      // Define the structure of the RPC function parameters
+      interface RpcParams {
+        org_id: string;
+      }
+
+      // Make the RPC calls with proper type annotations
+      const { data: customersCount, error: customersError } = await supabase.rpc<number>(
         'count_customers_by_org', 
         { org_id: orgId } as RpcParams
       );
       
-      const { data: invoicesCount, error: invoicesError } = await supabase.rpc(
+      const { data: invoicesCount, error: invoicesError } = await supabase.rpc<number>(
         'count_invoices_by_org', 
         { org_id: orgId } as RpcParams
       );
       
-      const { data: collectionsCount, error: collectionsError } = await supabase.rpc(
+      const { data: collectionsCount, error: collectionsError } = await supabase.rpc<number>(
         'count_collections_by_org', 
         { org_id: orgId } as RpcParams
       );

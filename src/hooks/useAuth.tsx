@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -138,24 +139,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
       
-      const { data: userData, error: userDataError } = await supabase
-        .from('users')
-        .select('*, organizations:organization_id(*)')
-        .eq('email', email)
-        .maybeSingle();
+      // Check if this is an admin user
+      const isAdminEmail = email === 'julioquintanilha@hotmail.com';
       
-      if (userDataError && userDataError.code !== 'PGRST116') {
-        console.error('Error fetching user data:', userDataError);
-      }
-      
-      const isAdminUser = userData?.organizations?.is_admin || 
-                           email === 'julioquintanilha@hotmail.com';
-      
-      if (isAdminUser) {
+      if (isAdminEmail) {
         console.log('Admin user identified, redirecting to admin dashboard');
         navigate('/admin');
       } else {
-        navigate('/');
+        // Fetch user data to check organization admin status
+        const { data: userData, error: userDataError } = await supabase
+          .from('users')
+          .select('*, organizations:organization_id(*)')
+          .eq('email', email)
+          .maybeSingle();
+        
+        if (userDataError && userDataError.code !== 'PGRST116') {
+          console.error('Error fetching user data:', userDataError);
+        }
+        
+        const isOrgAdmin = userData?.organizations?.is_admin || false;
+        
+        if (isOrgAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }
       
       toast({
