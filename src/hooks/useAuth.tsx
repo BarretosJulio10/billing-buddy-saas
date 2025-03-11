@@ -4,14 +4,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
+import { Organization, User as AppUser } from '@/types/organization';
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
+  appUser: AppUser | null;
+  organization: Organization | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, orgName: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
+  isAdmin: boolean;
+  isBlocked: boolean;
+  subscriptionExpiringSoon: boolean;
+  refetchUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,23 +26,104 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [appUser, setAppUser] = useState<AppUser | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [subscriptionExpiringSoon, setSubscriptionExpiringSoon] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const fetchUserData = async (userId: string) => {
+    try {
+      // Buscar dados do usuário
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*, organizations(*)')
+        .eq('id', userId)
+        .single();
+
+      if (userError) throw userError;
+
+      if (userData) {
+        const appUserData: AppUser = {
+          id: userData.id,
+          organizationId: userData.organization_id,
+          firstName: userData.first_name,
+          lastName: userData.last_name,
+          email: userData.organizations.email,
+          role: userData.role,
+          createdAt: userData.created_at,
+          updatedAt: userData.updated_at
+        };
+
+        const orgData: Organization = {
+          id: userData.organizations.id,
+          name: userData.organizations.name,
+          email: userData.organizations.email,
+          phone: userData.organizations.phone,
+          createdAt: userData.organizations.created_at,
+          updatedAt: userData.organizations.updated_at,
+          subscriptionStatus: userData.organizations.subscription_status,
+          subscriptionDueDate: userData.organizations.subscription_due_date,
+          subscriptionAmount: userData.organizations.subscription_amount,
+          lastPaymentDate: userData.organizations.last_payment_date,
+          gateway: userData.organizations.gateway,
+          isAdmin: userData.organizations.is_admin,
+          blocked: userData.organizations.blocked
+        };
+
+        setAppUser(appUserData);
+        setOrganization(orgData);
+        setIsAdmin(orgData.isAdmin);
+        setIsBlocked(orgData.blocked);
+
+        // Verificar se a assinatura está prestes a vencer
+        const dueDate = new Date(orgData.subscriptionDueDate);
+        const today = new Date();
+        const diffTime = dueDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        setSubscriptionExpiringSoon(diffDays <= 7 && diffDays > 0 && orgData.subscriptionStatus === 'active');
+      }
+    } catch (error: any) {
+      console.error('Erro ao buscar dados do usuário:', error);
+    }
+  };
+
+  const refetchUserData = async () => {
+    if (user) {
+      await fetchUserData(user.id);
+    }
+  };
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      if (session?.user) {
+        fetchUserData(session.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      
+      if (session?.user) {
+        fetchUserData(session.user.id);
+      } else {
+        setAppUser(null);
+        setOrganization(null);
+        setIsAdmin(false);
+        setIsBlocked(false);
+        setSubscriptionExpiringSoon(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -49,7 +137,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       if (error) throw error;
-      navigate('/');
+      
+      // Redirecionar com base no tipo de usuário
+      const { data: userData } = await supabase
+        .from('users')
+        .select('*, organizations(*)')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (userData?.organizations?.is_admin) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
       
       toast({
         title: "Login realizado com sucesso",
@@ -64,18 +164,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, orgName: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      // Verificar se o email já está sendo usado
+      const { data: emailCheck } = await supabase
+        .from('organizations')
+        .select('email')
+        .eq('email', email)
+        .single();
+
+      if (emailCheck) {
+        throw new Error('Este email já está sendo usado');
+      }
+
+      // Criar usuário no Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
       });
       
-      if (error) throw error;
+      if (authError) throw authError;
+      
+      if (authData.user) {
+        // Criar organização
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .insert({
+            name: orgName,
+            email: email,
+            subscription_due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
+          })
+          .select()
+          .single();
+          
+        if (orgError) throw orgError;
+        
+        // Criar usuário associado à organização
+        const { error: userError } = await supabase
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            organization_id: orgData.id,
+            role: 'admin',
+            email: email
+          });
+          
+        if (userError) throw userError;
+      }
       
       toast({
         title: "Conta criada com sucesso",
-        description: "Verifique seu email para confirmar o cadastro.",
+        description: "Você já pode fazer login no sistema.",
       });
     } catch (error: any) {
       toast({
@@ -107,10 +246,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     session,
     user,
+    appUser,
+    organization,
     signIn,
     signUp,
     signOut,
     loading,
+    isAdmin,
+    isBlocked,
+    subscriptionExpiringSoon,
+    refetchUserData
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
