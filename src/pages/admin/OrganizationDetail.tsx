@@ -18,7 +18,9 @@ export default function AdminOrganizationDetail() {
   const { organization, loading, stats, fetchOrganizationDetails } = useOrganizationDetails(id);
 
   const handleOrganizationUpdate = (updatedOrg: Organization) => {
-    fetchOrganizationDetails(updatedOrg.id);
+    if (updatedOrg.id) {
+      fetchOrganizationDetails(updatedOrg.id);
+    }
   };
 
   const { toggleBlockOrganization, updateSubscription } = useOrganizationActions({

@@ -69,16 +69,21 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      const [customersCount, invoicesCount, collectionsCount] = await Promise.all([
-        supabase.rpc('count_customers_by_org', { org_id: orgId }) as Promise<{ data: number }>,
-        supabase.rpc('count_invoices_by_org', { org_id: orgId }) as Promise<{ data: number }>,
-        supabase.rpc('count_collections_by_org', { org_id: orgId }) as Promise<{ data: number }>
+      // Fix the RPC calls by using the proper approach
+      const customersPromise = supabase.rpc('count_customers_by_org', { org_id: orgId });
+      const invoicesPromise = supabase.rpc('count_invoices_by_org', { org_id: orgId });
+      const collectionsPromise = supabase.rpc('count_collections_by_org', { org_id: orgId });
+      
+      const [customersResponse, invoicesResponse, collectionsResponse] = await Promise.all([
+        customersPromise,
+        invoicesPromise,
+        collectionsPromise
       ]);
       
       setStats({
-        customers: customersCount.data || 0,
-        invoices: invoicesCount.data || 0,
-        collections: collectionsCount.data || 0
+        customers: customersResponse.data || 0,
+        invoices: invoicesResponse.data || 0,
+        collections: collectionsResponse.data || 0
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);
