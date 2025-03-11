@@ -30,11 +30,13 @@ export function useAuthActions() {
         console.log('Admin user identified, redirecting to admin dashboard');
         navigate('/admin');
       } else {
-        // Using the correct typing approach to avoid circular dependencies
-        type UserWithOrg = {
-          email: string;
-          organizations: { is_admin: boolean } | null;
-        };
+        // Define a simple interface for the user data we need instead of using the complex types
+        interface SimpleUserData {
+          email?: string;
+          organizations?: {
+            is_admin?: boolean;
+          } | null;
+        }
         
         const { data: userData, error: userDataError } = await supabase
           .from('users')
@@ -46,8 +48,9 @@ export function useAuthActions() {
           console.error('Error fetching user data:', userDataError);
         }
         
-        const typedUserData = userData as UserWithOrg | null;
-        const isOrgAdmin = typedUserData?.organizations?.is_admin || false;
+        // Cast the returned data to our simple interface
+        const simpleUserData = userData as SimpleUserData | null;
+        const isOrgAdmin = simpleUserData?.organizations?.is_admin || false;
         
         if (isOrgAdmin) {
           navigate('/admin');
