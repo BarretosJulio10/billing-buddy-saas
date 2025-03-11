@@ -69,15 +69,18 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define exact types for our RPC function names
+      // Define the RPC function names and parameter type
       type CountFunctionName = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
+      
+      // Define the parameters type explicitly
+      interface RpcParams {
+        org_id: string;
+      }
       
       // Create a typed function to fetch counts
       async function fetchCount(functionName: CountFunctionName): Promise<number> {
-        const { data, error } = await supabase.rpc(
-          functionName, 
-          { org_id: orgId } as { org_id: string }
-        );
+        const params: RpcParams = { org_id: orgId };
+        const { data, error } = await supabase.rpc(functionName, params);
         
         if (error) throw error;
         return typeof data === 'number' ? data : 0;

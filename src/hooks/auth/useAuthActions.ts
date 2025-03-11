@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -34,29 +35,31 @@ export function useAuthActions() {
       let redirectPath = '/';
       
       try {
-        // Get user data - avoid nested queries and use simplified approach
-        const { data: userData, error: userError } = await supabase
+        // Get user organization ID - avoid nesting queries
+        const userResult = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
-          .single();
+          .maybeSingle();
           
-        if (userError) {
-          console.error('Error fetching user:', userError);
+        if (userResult.error) {
+          console.error('Error fetching user:', userResult.error);
         } 
-        else if (userData?.organization_id) {
-          // Separate organization query to avoid nesting
-          const { data: orgData, error: orgError } = await supabase
+        else if (userResult.data?.organization_id) {
+          const orgId = userResult.data.organization_id;
+          
+          // Get organization admin status in a separate query
+          const orgResult = await supabase
             .from('organizations')
             .select('is_admin')
-            .eq('id', userData.organization_id)
-            .single();
+            .eq('id', orgId)
+            .maybeSingle();
             
-          if (orgError) {
-            console.error('Error fetching organization:', orgError);
+          if (orgResult.error) {
+            console.error('Error fetching organization:', orgResult.error);
           }
-          else if (orgData) {
-            redirectPath = orgData.is_admin ? '/admin' : '/';
+          else if (orgResult.data) {
+            redirectPath = orgResult.data.is_admin ? '/admin' : '/';
           }
         }
       } catch (err) {
