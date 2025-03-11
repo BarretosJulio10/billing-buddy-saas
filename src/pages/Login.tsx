@@ -34,6 +34,7 @@ export default function Login() {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [adminSetupTriggered, setAdminSetupTriggered] = useState(false);
   const [adminSetupComplete, setAdminSetupComplete] = useState(false);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -58,9 +59,11 @@ export default function Login() {
       setIsLoading(true);
       
       // Special case for admin login
-      if (data.email === 'julioquintanilha@hotmail.com' && !adminSetupComplete) {
+      if (data.email === 'julioquintanilha@hotmail.com') {
         console.log('Attempting admin login...');
-        await createAdminUserIfNeeded();
+        if (!adminSetupComplete) {
+          await createAdminUserIfNeeded();
+        }
       }
 
       // Attempt sign in
@@ -103,6 +106,9 @@ export default function Login() {
   const createAdminUserIfNeeded = async () => {
     try {
       setIsLoading(true);
+      setAdminSetupTriggered(true);
+      
+      console.log('Setting up admin user...');
       const { data, error } = await supabase.functions.invoke('create-admin-user');
       
       if (error) {
@@ -112,6 +118,7 @@ export default function Login() {
           description: error.message || "Não foi possível configurar a conta de administrador",
           variant: "destructive",
         });
+        return false;
       } else {
         console.log('Admin user setup completed:', data);
         toast({
@@ -119,6 +126,7 @@ export default function Login() {
           description: "A conta de administrador foi configurada com sucesso",
         });
         setAdminSetupComplete(true);
+        return true;
       }
     } catch (error: any) {
       console.error('Failed to setup admin user:', error);
@@ -127,15 +135,18 @@ export default function Login() {
         description: "Ocorreu um erro ao configurar a conta de administrador",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Call once when the component mounts
+  // Attempt to set up admin user when component mounts
   useEffect(() => {
-    createAdminUserIfNeeded();
-  }, []);
+    if (!adminSetupTriggered) {
+      createAdminUserIfNeeded();
+    }
+  }, [adminSetupTriggered]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">

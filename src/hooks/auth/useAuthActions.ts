@@ -14,6 +14,7 @@ export function useAuthActions() {
       setLoading(true);
       console.log(`Attempting to sign in: ${email}`);
       
+      // Try to sign in
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -25,19 +26,32 @@ export function useAuthActions() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) throw new Error("User not found after login");
+      
+      console.log("User authenticated successfully:", user.id);
 
       // Get organization data for the user
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('organization_id, organizations:organization_id(is_admin)')
+        .select('organization_id, email, organizations:organization_id(*)')
         .eq('id', user.id)
         .maybeSingle();
       
-      if (userError) throw userError;
-      if (!userData) throw new Error("User data not found");
+      if (userError) {
+        console.error("Error fetching user data:", userError);
+        throw userError;
+      }
+      
+      if (!userData) {
+        console.error("User data not found for ID:", user.id);
+        throw new Error("User data not found. Please contact support.");
+      }
+
+      console.log("User data retrieved:", userData);
 
       // Determine if user is admin and redirect accordingly
       const isAdmin = userData.organizations?.is_admin === true;
+      console.log("Is admin:", isAdmin);
+      
       const redirectPath = isAdmin ? '/admin' : '/';
       
       navigate(redirectPath);
