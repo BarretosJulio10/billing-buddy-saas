@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "./hooks/auth/AuthProvider";
 import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "./components/ui/toaster";
