@@ -30,33 +30,30 @@ export function useAuthActions() {
         return;
       }
 
-      // Simplified approach to avoid nested queries that cause type depth issues
+      // Use a simpler approach to determine redirect path
       let redirectPath = '/';
       
-      try {
-        // Step 1: Get user organization ID
-        const { data: user } = await supabase
-          .from('users')
-          .select('organization_id')
-          .eq('email', email)
+      // First query - get the user's organization ID
+      const userResult = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('email', email)
+        .maybeSingle();
+        
+      const orgId = userResult.data?.organization_id;
+      
+      // If we have an organization ID, check if the user is an admin
+      if (orgId) {
+        const orgResult = await supabase
+          .from('organizations')
+          .select('is_admin')
+          .eq('id', orgId)
           .maybeSingle();
           
-        if (user?.organization_id) {
-          // Step 2: Get organization details in a separate query
-          const { data: org } = await supabase
-            .from('organizations')
-            .select('is_admin')
-            .eq('id', user.organization_id)
-            .maybeSingle();
-            
-          // Set redirect path based on organization admin status
-          if (org?.is_admin) {
-            redirectPath = '/admin';
-          }
+        // If this organization has is_admin flag set, redirect to admin
+        if (orgResult.data?.is_admin) {
+          redirectPath = '/admin';
         }
-      } catch (queryError) {
-        console.error('Error determining user role:', queryError);
-        // Continue with default redirect if there's an error
       }
 
       navigate(redirectPath);
