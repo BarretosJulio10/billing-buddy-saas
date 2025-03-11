@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -118,7 +117,6 @@ export default function AdminOrganizationDetail() {
         };
         setOrganization(org);
 
-        // Fetch statistics
         await fetchStats(orgId);
       }
     } catch (error) {
@@ -136,50 +134,34 @@ export default function AdminOrganizationDetail() {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Avoid deep type instantiation by using simpler query techniques
+      const customersQuery = await supabase.rpc('count_customers_by_org', {
+        org_id: orgId
+      });
       
-      // For customers count
-      const { error: customersError } = await supabase
-        .from('customers')
-        .select('id', { count: 'exact' })
-        .eq('organization_id', orgId)
-        .is('deleted_at', null)
-        .then(({ count, error }) => {
-          if (!error) {
-            setStats(prev => ({ ...prev, customers: count || 0 }));
-          }
-          return { error };
-        });
-
-      // For invoices count
-      const { error: invoicesError } = await supabase
-        .from('invoices')
-        .select('id', { count: 'exact' })
-        .eq('organization_id', orgId)
-        .is('deleted_at', null)
-        .then(({ count, error }) => {
-          if (!error) {
-            setStats(prev => ({ ...prev, invoices: count || 0 }));
-          }
-          return { error };
-        });
-
-      // For collection rules count
-      const { error: collectionsError } = await supabase
-        .from('collection_rules')
-        .select('id', { count: 'exact' })
-        .eq('organization_id', orgId)
-        .is('deleted_at', null)
-        .then(({ count, error }) => {
-          if (!error) {
-            setStats(prev => ({ ...prev, collections: count || 0 }));
-          }
-          return { error };
-        });
-
-      if (customersError) console.error('Error counting customers:', customersError);
-      if (invoicesError) console.error('Error counting invoices:', invoicesError);
-      if (collectionsError) console.error('Error counting collections:', collectionsError);
+      if (customersQuery.data !== null) {
+        setStats(prev => ({ ...prev, customers: customersQuery.data }));
+      }
+      
+      const invoicesQuery = await supabase.rpc('count_invoices_by_org', {
+        org_id: orgId
+      });
+      
+      if (invoicesQuery.data !== null) {
+        setStats(prev => ({ ...prev, invoices: invoicesQuery.data }));
+      }
+      
+      const collectionsQuery = await supabase.rpc('count_collections_by_org', {
+        org_id: orgId
+      });
+      
+      if (collectionsQuery.data !== null) {
+        setStats(prev => ({ ...prev, collections: collectionsQuery.data }));
+      }
+      
+      if (customersQuery.error) console.error('Error counting customers:', customersQuery.error);
+      if (invoicesQuery.error) console.error('Error counting invoices:', invoicesQuery.error);
+      if (collectionsQuery.error) console.error('Error counting collections:', collectionsQuery.error);
+      
     } catch (error) {
       console.error('Error fetching statistics:', error);
       setStats({
@@ -236,7 +218,6 @@ export default function AdminOrganizationDetail() {
 
       if (error) throw error;
 
-      // Update local state
       setOrganization(prev => prev ? {
         ...prev,
         subscriptionAmount: Number(data.amount),
