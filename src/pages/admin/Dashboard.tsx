@@ -1,5 +1,5 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +27,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Buscar total de organizações
+        // Fetch total organizations
         const { data: orgs, error: orgsError } = await supabase
           .from('organizations')
           .select('*', { count: 'exact' })
@@ -36,7 +36,7 @@ export default function AdminDashboard() {
 
         if (orgsError) throw orgsError;
 
-        // Filtrar para diferentes status
+        // Filter for different statuses
         const active = orgs?.filter(org => org.subscription_status === 'active' && !org.blocked).length || 0;
         const blocked = orgs?.filter(org => org.blocked).length || 0;
         const overdue = orgs?.filter(org => 
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
           org.subscription_status === 'active'
         ).length || 0;
 
-        // Calcular receita total (simulada)
+        // Calculate total revenue (simulated)
         const totalAmount = orgs?.reduce((sum, org) => sum + (org.subscription_amount || 0), 0) || 0;
 
         setStats({
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
           totalRevenue: totalAmount
         });
       } catch (error) {
-        console.error('Erro ao buscar estatísticas:', error);
+        console.error('Error fetching statistics:', error);
       } finally {
         setLoading(false);
       }

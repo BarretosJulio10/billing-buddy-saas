@@ -117,7 +117,7 @@ export function useSignIn() {
       console.log("User authenticated successfully:", authData.user.id);
 
       // Fetch user and organization data
-      const { appUser, organization, isAdmin, isBlocked } = await fetchUserData(authData.user.id);
+      const { appUser, organization, isAdmin } = await fetchUserData(authData.user.id);
       
       if (!appUser) {
         // User needs to complete profile
