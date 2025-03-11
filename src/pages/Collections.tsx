@@ -22,6 +22,9 @@ import {
   SelectTrigger,
   SelectValue 
 } from "@/components/ui/select";
+import { WhatsAppQRScanner } from "@/components/integrations/WhatsAppQRScanner";
+import { TelegramConnector } from "@/components/integrations/TelegramConnector";
+import { PaymentGatewayForm } from "@/components/integrations/PaymentGatewayForm";
 
 const Collections = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -62,136 +65,58 @@ const Collections = () => {
       </div>
 
       <Tabs defaultValue="models">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="models">Modelos</TabsTrigger>
-          <TabsTrigger value="settings">Configurações</TabsTrigger>
+          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+          <TabsTrigger value="telegram">Telegram</TabsTrigger>
+          <TabsTrigger value="payment">Formas de Pagamento</TabsTrigger>
         </TabsList>
         <TabsContent value="models">
           <CollectionRuleTable />
         </TabsContent>
-        <TabsContent value="settings">
-          <div className="grid gap-4 md:grid-cols-2">
+        
+        <TabsContent value="whatsapp">
+          <div className="grid gap-6">
+            <WhatsAppQRScanner apiEndpoint="/api/whatsapp/connect" />
+            
             <Card>
               <CardHeader>
-                <CardTitle>Configuração do WhatsApp</CardTitle>
+                <CardTitle>Configuração Avançada</CardTitle>
                 <CardDescription>
-                  Configure a API não oficial do WhatsApp para envio de cobranças
+                  Configure opções adicionais para o envio de mensagens via WhatsApp
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-4">
                 <div className="grid gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Endpoint da API
-                    </label>
+                    <label className="text-sm font-medium">URL da API</label>
                     <Input placeholder="https://sua-api-whatsapp.com/send" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Token de Acesso
-                    </label>
-                    <Input type="password" placeholder="Seu token de acesso" />
+                    <label className="text-sm font-medium">Token de Autenticação</label>
+                    <Input type="password" placeholder="seu-token-secreto" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Número de Telefone</label>
+                    <Input placeholder="5511999999999" />
                   </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button className="w-full">Conectar WhatsApp</Button>
-              </CardFooter>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Configuração do Telegram</CardTitle>
-                <CardDescription>
-                  Configure o bot do Telegram para envio de cobranças
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Token do Bot
-                    </label>
-                    <Input type="password" placeholder="Seu token do bot" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      ID do Chat
-                    </label>
-                    <Input placeholder="ID do chat ou grupo" />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full">Conectar Telegram</Button>
+                <Button className="w-full">Salvar Configurações</Button>
               </CardFooter>
             </Card>
           </div>
-          
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Mercado Pago</CardTitle>
-                <CardDescription>
-                  Configure sua integração com o Mercado Pago
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Client ID
-                    </label>
-                    <Input placeholder="Seu Client ID" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Client Secret
-                    </label>
-                    <Input type="password" placeholder="Seu Client Secret" />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full">Salvar Configurações</Button>
-              </CardFooter>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Asaas</CardTitle>
-                <CardDescription>
-                  Configure sua integração com o Asaas
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      API Key
-                    </label>
-                    <Input type="password" placeholder="Sua API Key" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Ambiente
-                    </label>
-                    <Select defaultValue="sandbox">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o ambiente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sandbox">Sandbox</SelectItem>
-                        <SelectItem value="production">Produção</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full">Salvar Configurações</Button>
-              </CardFooter>
-            </Card>
+        </TabsContent>
+        
+        <TabsContent value="telegram">
+          <TelegramConnector />
+        </TabsContent>
+        
+        <TabsContent value="payment">
+          <div className="grid gap-6 md:grid-cols-2">
+            <PaymentGatewayForm gateway="mercadopago" />
+            <PaymentGatewayForm gateway="asaas" />
           </div>
         </TabsContent>
       </Tabs>
