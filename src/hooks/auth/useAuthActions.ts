@@ -35,30 +35,30 @@ export function useAuthActions() {
       let redirectPath = '/';
       
       try {
-        // Fetch user data without nesting queries
-        const { data: userData, error: userError } = await supabase
+        // First fetch the user data
+        const userResponse = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
           .maybeSingle();
         
-        if (userError) {
-          console.error('Error fetching user:', userError);
+        if (userResponse.error) {
+          console.error('Error fetching user:', userResponse.error);
         } 
-        else if (userData && userData.organization_id) {
-          // If organization ID exists, fetch organization in a separate query
-          const orgId = userData.organization_id;
+        else if (userResponse.data && userResponse.data.organization_id) {
+          // Then fetch the organization data in a separate query
+          const orgId = userResponse.data.organization_id;
           
-          const { data: orgData, error: orgError } = await supabase
+          const orgResponse = await supabase
             .from('organizations')
             .select('is_admin')
             .eq('id', orgId)
             .maybeSingle();
             
-          if (orgError) {
-            console.error('Error fetching organization:', orgError);
+          if (orgResponse.error) {
+            console.error('Error fetching organization:', orgResponse.error);
           }
-          else if (orgData && orgData.is_admin) {
+          else if (orgResponse.data && orgResponse.data.is_admin) {
             redirectPath = '/admin';
           }
         }

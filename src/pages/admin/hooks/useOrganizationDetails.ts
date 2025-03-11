@@ -73,9 +73,12 @@ export function useOrganizationDetails(id: string | undefined) {
     try {
       // Create a typed function to fetch counts with proper type safety
       async function fetchCount(functionName: CountFunctionName): Promise<number> {
+        // Create a properly typed parameters object
+        const params = { org_id: orgId };
+        
         const { data, error } = await supabase.rpc(
-          functionName,
-          { org_id: orgId } as Record<string, string>
+          functionName, 
+          params
         );
         
         if (error) throw error;
