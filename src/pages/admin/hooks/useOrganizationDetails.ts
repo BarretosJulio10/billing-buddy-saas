@@ -83,8 +83,11 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      // Cast the RPC call to explicitly define the expected return type
-      const { data, error } = await supabase.rpc<number>(functionName, { org_id: orgId });
+      // Fixing the RPC call by using the correct type signature
+      const { data, error } = await supabase.rpc<number, { org_id: string }>(
+        functionName, 
+        { org_id: orgId }
+      );
       
       if (error) throw error;
       
