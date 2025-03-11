@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -30,41 +31,42 @@ export function useAuthActions() {
         return;
       }
 
-      // Fetch user data
-      const userResponse = await supabase
+      // Avoid nesting queries and simplify to avoid deep type instantiation
+      let organizationId: string | null = null;
+      let isAdmin = false;
+      
+      // Step 1: Get organization ID
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('organization_id')
         .eq('email', email)
-        .maybeSingle();
-        
-      if (userResponse.error) {
-        console.error('Error fetching user data:', userResponse.error);
+        .single();
+      
+      if (userError) {
+        console.error('Error fetching user data:', userError);
         navigate('/');
-        return;
+      } else if (userData) {
+        organizationId = userData.organization_id;
+        
+        // Step 2: Check if admin (only if we have an organization)
+        if (organizationId) {
+          const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
+            .select('is_admin')
+            .eq('id', organizationId)
+            .single();
+            
+          if (orgError) {
+            console.error('Error fetching organization data:', orgError);
+          } else if (orgData) {
+            isAdmin = orgData.is_admin || false;
+          }
+        }
       }
 
-      const organizationId = userResponse.data?.organization_id;
-      
-      // If user has an organization, check if they're an admin
-      if (organizationId) {
-        const orgResponse = await supabase
-          .from('organizations')
-          .select('is_admin')
-          .eq('id', organizationId)
-          .maybeSingle();
-          
-        if (orgResponse.error) {
-          console.error('Error fetching organization data:', orgResponse.error);
-          navigate('/');
-          return;
-        }
-        
-        // Navigate based on admin status
-        if (orgResponse.data?.is_admin) {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
+      // Navigate based on admin status
+      if (isAdmin) {
+        navigate('/admin');
       } else {
         navigate('/');
       }

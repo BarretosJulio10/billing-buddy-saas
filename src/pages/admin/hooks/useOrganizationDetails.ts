@@ -88,10 +88,10 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      // Call the RPC function with correct typing, specifying return type and params
+      // Call the RPC function without explicit type parameters
       const { data, error } = await supabase.rpc(
         functionName, 
-        { org_id: orgId }
+        { org_id: orgId } as OrgIdParam
       );
       
       if (error) throw error;
