@@ -60,7 +60,7 @@ export async function fetchUserData(userId: string): Promise<{
           organizationId: userData.organization_id,
           firstName: userData.first_name,
           lastName: userData.last_name,
-          email: userData.email || '',
+          email: '', // No email in users table, use empty string
           role: userData.role as 'admin' | 'user',
           createdAt: userData.created_at,
           updatedAt: userData.updated_at
@@ -87,7 +87,7 @@ export async function fetchUserData(userId: string): Promise<{
         organizationId: userData.organization_id,
         firstName: userData.first_name,
         lastName: userData.last_name,
-        email: userData.email || '',
+        email: '', // No email in users table, use empty string
         role: userData.role as 'admin' | 'user',
         createdAt: userData.created_at,
         updatedAt: userData.updated_at
@@ -108,7 +108,7 @@ export async function fetchUserData(userId: string): Promise<{
       organizationId: userData.organization_id,
       firstName: userData.first_name,
       lastName: userData.last_name,
-      email: userData.email || orgData.email || '',
+      email: orgData.email || '', // Use organization email as fallback
       role: userData.role as 'admin' | 'user',
       createdAt: userData.created_at,
       updatedAt: userData.updated_at

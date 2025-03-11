@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -33,3 +33,5 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
+
+export default AppLayout;
