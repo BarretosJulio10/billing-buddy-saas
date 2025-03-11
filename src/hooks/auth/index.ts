@@ -1,3 +1,3 @@
 
-export { AuthProvider, useAuth } from './auth';
-export type { AuthContextType } from './types';
+// Re-export everything from auth.ts
+export * from './auth';
