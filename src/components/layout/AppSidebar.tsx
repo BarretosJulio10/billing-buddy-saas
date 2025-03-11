@@ -1,5 +1,5 @@
 
-import { Users, FileText, Bell, Settings, Trash2 } from "lucide-react";
+import { Users, FileText, Bell, Settings, Trash2, LayoutDashboard } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +12,11 @@ import {
 } from "@/components/ui/sidebar";
 
 const menuItems = [
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: LayoutDashboard,
+  },
   {
     title: "Clientes",
     url: "/customers",
