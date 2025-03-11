@@ -1,5 +1,5 @@
 
-import { LogOut, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,11 +9,9 @@ import {
   SidebarFooter,
   SidebarSeparator,
   SidebarTrigger,
-  SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/useAuth";
-import { SidebarMenu, SystemStatus } from "./sidebar";
+import { SidebarMenu, SystemStatus, LogoutButton } from "./sidebar";
 
 // Mock status - Will be replaced with actual API data
 const whatsappStatus = {
@@ -33,7 +31,6 @@ const databaseStatus = {
 
 export function AppSidebar() {
   const { open, toggleSidebar } = useSidebar();
-  const { signOut } = useAuth();
   
   return (
     <Sidebar className={open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}>
@@ -67,20 +64,9 @@ export function AppSidebar() {
           databaseStatus={databaseStatus}
         />
         
-        {/* Sair button */}
+        {/* Logout button */}
         <SidebarSeparator />
-        <div className="px-2 py-2">
-          <SidebarMenuButton 
-            onClick={signOut}
-            tooltip="Sair"
-            className="w-full justify-start"
-          >
-            <div className="flex items-center gap-3">
-              <LogOut className="w-5 h-5" />
-              <span>Sair</span>
-            </div>
-          </SidebarMenuButton>
-        </div>
+        <LogoutButton />
       </SidebarFooter>
     </Sidebar>
   );
