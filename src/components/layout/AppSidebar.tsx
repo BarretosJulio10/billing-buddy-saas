@@ -1,6 +1,6 @@
 
-import { Users, FileText, Bell, Settings, Trash2, LayoutDashboard, Wifi, WifiOff, Database, MessageCircle, MessageCircleOff } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Users, FileText, Bell, Settings, Trash2, LayoutDashboard, Wifi, WifiOff, Database, MessageCircle, MessageCircleOff, Menu } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
   SidebarFooter,
   SidebarSeparator,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 const menuItems = [
@@ -64,16 +65,28 @@ const databaseStatus = {
 };
 
 export function AppSidebar() {
+  const location = useLocation();
+  
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Sistema de Mensalidades</SidebarGroupLabel>
+          <div className="flex items-center justify-between px-3 py-2">
+            <SidebarGroupLabel>PagouPix</SidebarGroupLabel>
+            <SidebarTrigger className="md:hidden flex">
+              <Menu className="h-5 w-5" />
+            </SidebarTrigger>
+          </div>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton 
+                    asChild
+                    isActive={location.pathname === item.url || 
+                              (item.url !== "/" && location.pathname.startsWith(item.url))}
+                    tooltip={item.title}
+                  >
                     <Link to={item.url} className="flex items-center gap-3">
                       <item.icon className="w-5 h-5" />
                       <span>{item.title}</span>
