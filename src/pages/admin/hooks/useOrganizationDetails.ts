@@ -10,6 +10,8 @@ interface OrganizationStats {
   collections: number;
 }
 
+type CountFunctionName = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
+
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -69,26 +71,21 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define the RPC function names as string literals
-      const countCustomersFunc = 'count_customers_by_org';
-      const countInvoicesFunc = 'count_invoices_by_org';
-      const countCollectionsFunc = 'count_collections_by_org';
-      
-      // Create a typed function to fetch counts
-      async function fetchCount(functionName: string): Promise<number> {
-        const { data, error } = await supabase.rpc(
-          functionName, 
-          { org_id: orgId }
-        );
+      // Create a typed function to fetch counts with proper type safety
+      async function fetchCount(functionName: CountFunctionName): Promise<number> {
+        // Explicitly type the parameters object
+        const params: { org_id: string } = { org_id: orgId };
+        
+        const { data, error } = await supabase.rpc(functionName, params);
         
         if (error) throw error;
         return typeof data === 'number' ? data : 0;
       }
 
       const [customers, invoices, collections] = await Promise.all([
-        fetchCount(countCustomersFunc),
-        fetchCount(countInvoicesFunc),
-        fetchCount(countCollectionsFunc)
+        fetchCount('count_customers_by_org'),
+        fetchCount('count_invoices_by_org'),
+        fetchCount('count_collections_by_org')
       ]);
       
       setStats({
