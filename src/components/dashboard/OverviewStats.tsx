@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, FileText, AlertCircle, DollarSign } from "lucide-react";
+import { Users, FileText, AlertCircle, DollarSign, ArrowUp, ArrowDown, Activity } from "lucide-react";
 
 // Mock data - will be replaced with actual API data
 const stats = [
@@ -31,12 +31,26 @@ const stats = [
     icon: DollarSign,
     change: "+18% em 30 dias",
     positive: true
+  },
+  {
+    title: "Taxa de Conversão",
+    value: "94%",
+    icon: ArrowUp,
+    change: "+3% em 30 dias",
+    positive: true
+  },
+  {
+    title: "Mensagens Enviadas",
+    value: "1.256",
+    icon: Activity,
+    change: "+22% em 30 dias",
+    positive: true
   }
 ];
 
 export function OverviewStats() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {stats.map((stat, index) => (
         <Card key={index} className="shadow-sm">
           <CardContent className="p-6">
@@ -50,7 +64,14 @@ export function OverviewStats() {
               </div>
             </div>
             <div className={`text-xs mt-3 ${stat.positive ? 'text-success' : 'text-destructive'}`}>
-              {stat.change}
+              <span className="flex items-center">
+                {stat.positive ? (
+                  <ArrowUp className="mr-1 h-3 w-3" />
+                ) : (
+                  <ArrowDown className="mr-1 h-3 w-3" />
+                )}
+                {stat.change}
+              </span>
             </div>
           </CardContent>
         </Card>
