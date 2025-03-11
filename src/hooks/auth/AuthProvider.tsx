@@ -1,4 +1,3 @@
-
 import { createContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
@@ -47,14 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
       
-      // Check if this is an admin user
       const isAdminEmail = email === 'julioquintanilha@hotmail.com';
       
       if (isAdminEmail) {
         console.log('Admin user identified, redirecting to admin dashboard');
         navigate('/admin');
       } else {
-        // Fetch user data to check organization admin status
         const { data: userData, error: userDataError } = await supabase
           .from('users')
           .select('*, organizations:organization_id(*)')
@@ -206,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const value = {
+  const value: AuthContextType = {
     session,
     user,
     appUser,

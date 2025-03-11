@@ -10,6 +10,12 @@ interface OrganizationStats {
   collections: number;
 }
 
+// Type for RPC response
+interface RPCCountResponse {
+  data: number | null;
+  error: Error | null;
+}
+
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -69,12 +75,27 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Fix the RPC calls by using the proper approach
-      const customersPromise = supabase.rpc('count_customers_by_org', { org_id: orgId });
-      const invoicesPromise = supabase.rpc('count_invoices_by_org', { org_id: orgId });
-      const collectionsPromise = supabase.rpc('count_collections_by_org', { org_id: orgId });
+      // Properly type RPC calls and parameters
+      const customersPromise = supabase.rpc(
+        'count_customers_by_org', 
+        { org_id: orgId as string }
+      );
       
-      const [customersResponse, invoicesResponse, collectionsResponse] = await Promise.all([
+      const invoicesPromise = supabase.rpc(
+        'count_invoices_by_org', 
+        { org_id: orgId as string }
+      );
+      
+      const collectionsPromise = supabase.rpc(
+        'count_collections_by_org', 
+        { org_id: orgId as string }
+      );
+      
+      const [
+        customersResponse, 
+        invoicesResponse, 
+        collectionsResponse
+      ] = await Promise.all([
         customersPromise,
         invoicesPromise,
         collectionsPromise
