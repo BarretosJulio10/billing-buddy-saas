@@ -14,6 +14,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { X } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -28,6 +31,7 @@ type LoginFormProps = {
 export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
   const { signIn } = useAuth();
   const { toast } = useToast();
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -40,12 +44,14 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
   const handleLogin = async (data: z.infer<typeof loginSchema>) => {
     try {
       setIsLoading(true);
+      setLoginError(null);
       await signIn(data.email, data.password);
     } catch (error: any) {
       console.error('Login error:', error);
+      setLoginError("Credenciais de login inválidas. Por favor, verifique seu email e senha.");
       toast({
         title: "Erro ao fazer login",
-        description: error.message || "Verifique suas credenciais e tente novamente",
+        description: "Credenciais inválidas. Verifique seu email e senha.",
         variant: "destructive",
       });
     } finally {
@@ -53,8 +59,23 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
     }
   };
 
+  const clearError = () => {
+    setLoginError(null);
+  };
+
   return (
     <Form {...form}>
+      {loginError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription className="flex justify-between items-center">
+            {loginError}
+            <button onClick={clearError} className="text-xs">
+              <X size={16} />
+            </button>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
         <FormField
           control={form.control}
@@ -63,7 +84,10 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="seu@email.com" {...field} />
+                <Input placeholder="seu@email.com" {...field} onChange={(e) => {
+                  field.onChange(e);
+                  if (loginError) setLoginError(null);
+                }} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -77,7 +101,10 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
             <FormItem>
               <FormLabel>Senha</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••" {...field} />
+                <Input type="password" placeholder="••••••" {...field} onChange={(e) => {
+                  field.onChange(e);
+                  if (loginError) setLoginError(null);
+                }} />
               </FormControl>
               <FormMessage />
             </FormItem>
