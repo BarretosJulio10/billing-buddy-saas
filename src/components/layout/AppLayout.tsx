@@ -35,7 +35,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <Button 
               variant="outline" 
               size="icon" 
-              className="fixed z-50 bottom-4 right-4 rounded-full shadow-lg md:hidden"
+              className="fixed z-50 top-4 left-4 rounded-full shadow-lg md:hidden"
               onClick={toggleSidebar}
               aria-label={sidebarOpen ? "Fechar menu" : "Abrir menu"}
               title={sidebarOpen ? "Fechar menu" : "Abrir menu"}
