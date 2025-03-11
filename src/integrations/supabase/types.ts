@@ -270,6 +270,57 @@ export type Database = {
         }
         Relationships: []
       }
+      organizations: {
+        Row: {
+          blocked: boolean | null
+          created_at: string | null
+          deleted_at: string | null
+          email: string
+          gateway: string | null
+          id: string
+          is_admin: boolean | null
+          last_payment_date: string | null
+          name: string
+          phone: string | null
+          subscription_amount: number
+          subscription_due_date: string
+          subscription_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email: string
+          gateway?: string | null
+          id?: string
+          is_admin?: boolean | null
+          last_payment_date?: string | null
+          name: string
+          phone?: string | null
+          subscription_amount?: number
+          subscription_due_date: string
+          subscription_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string
+          gateway?: string | null
+          id?: string
+          is_admin?: boolean | null
+          last_payment_date?: string | null
+          name?: string
+          phone?: string | null
+          subscription_amount?: number
+          subscription_due_date?: string
+          subscription_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       payment_gateway_settings: {
         Row: {
           additional_config: Json | null
@@ -326,6 +377,44 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          organization_id: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          organization_id?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          organization_id?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

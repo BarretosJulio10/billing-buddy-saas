@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,11 +43,11 @@ import {
 const subscriptionSchema = z.object({
   amount: z.string().refine(
     (val) => !isNaN(Number(val)) && Number(val) > 0, 
-    { message: "Valor deve ser um número positivo" }
+    { message: "Value must be a positive number" }
   ),
   dueDate: z.string().refine(
     (val) => !isNaN(Date.parse(val)), 
-    { message: "Data inválida" }
+    { message: "Invalid date" }
   ),
   gateway: z.enum(["mercadopago", "asaas"])
 });
@@ -118,14 +117,14 @@ export default function AdminOrganizationDetail() {
         };
         setOrganization(org);
 
-        // Buscar estatísticas
+        // Fetch statistics
         await fetchStats(orgId);
       }
     } catch (error) {
-      console.error('Erro ao buscar detalhes da organização:', error);
+      console.error('Error fetching organization details:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar os detalhes da empresa",
+        title: "Error",
+        description: "Could not load company details",
         variant: "destructive"
       });
       navigate('/admin/organizations');
@@ -136,7 +135,7 @@ export default function AdminOrganizationDetail() {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Buscar contagem de clientes
+      // Fetch customer count
       const { count: customersCount, error: customersError } = await supabase
         .from('customers')
         .select('*', { count: 'exact' })
@@ -145,7 +144,7 @@ export default function AdminOrganizationDetail() {
 
       if (customersError) throw customersError;
 
-      // Buscar contagem de faturas
+      // Fetch invoice count
       const { count: invoicesCount, error: invoicesError } = await supabase
         .from('invoices')
         .select('*', { count: 'exact' })
@@ -154,7 +153,7 @@ export default function AdminOrganizationDetail() {
 
       if (invoicesError) throw invoicesError;
 
-      // Buscar contagem de regras de cobrança
+      // Fetch collection rules count
       const { count: collectionsCount, error: collectionsError } = await supabase
         .from('collection_rules')
         .select('*', { count: 'exact' })
@@ -169,7 +168,7 @@ export default function AdminOrganizationDetail() {
         collections: collectionsCount || 0
       });
     } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error);
+      console.error('Error fetching statistics:', error);
     }
   };
 
@@ -187,16 +186,16 @@ export default function AdminOrganizationDetail() {
       setOrganization(prev => prev ? { ...prev, blocked: !prev.blocked } : null);
       
       toast({
-        title: organization.blocked ? "Empresa desbloqueada" : "Empresa bloqueada",
+        title: organization.blocked ? "Company unblocked" : "Company blocked",
         description: organization.blocked 
-          ? "A empresa foi desbloqueada com sucesso" 
-          : "A empresa foi bloqueada com sucesso",
+          ? "The company has been successfully unblocked" 
+          : "The company has been successfully blocked",
       });
     } catch (error) {
-      console.error('Erro ao alterar status da organização:', error);
+      console.error('Error changing organization status:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível alterar o status da empresa",
+        title: "Error",
+        description: "Could not change company status",
         variant: "destructive"
       });
     }
@@ -219,7 +218,7 @@ export default function AdminOrganizationDetail() {
 
       if (error) throw error;
 
-      // Atualizar state local
+      // Update local state
       setOrganization(prev => prev ? {
         ...prev,
         subscriptionAmount: Number(data.amount),
@@ -232,14 +231,14 @@ export default function AdminOrganizationDetail() {
       setDialogOpen(false);
       
       toast({
-        title: "Assinatura atualizada",
-        description: "Os dados da assinatura foram atualizados com sucesso",
+        title: "Subscription updated",
+        description: "Subscription data has been successfully updated",
       });
     } catch (error) {
-      console.error('Erro ao atualizar assinatura:', error);
+      console.error('Error updating subscription:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível atualizar os dados da assinatura",
+        title: "Error",
+        description: "Could not update subscription data",
         variant: "destructive"
       });
     }

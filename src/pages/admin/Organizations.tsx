@@ -65,7 +65,7 @@ export default function AdminOrganizations() {
         setOrganizations(orgs);
       }
     } catch (error) {
-      console.error('Erro ao buscar organizações:', error);
+      console.error('Error fetching organizations:', error);
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ export default function AdminOrganizations() {
         )
       );
     } catch (error) {
-      console.error('Erro ao alterar status da organização:', error);
+      console.error('Error changing organization status:', error);
     }
   };
 

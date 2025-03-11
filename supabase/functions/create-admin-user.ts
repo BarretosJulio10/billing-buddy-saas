@@ -19,7 +19,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Verificar se já existe um usuário admin
+    // Check if admin user already exists
     const { data: existingAdmin, error: findError } = await supabaseClient
       .from('users')
       .select('*')
@@ -27,13 +27,13 @@ serve(async (req) => {
       .single();
 
     if (findError && findError.code !== 'PGRST116') {
-      console.error("Erro ao verificar usuário existente:", findError);
+      console.error("Error checking existing user:", findError);
       throw findError;
     }
 
     if (existingAdmin) {
       return new Response(
-        JSON.stringify({ message: "Admin já existe", user: existingAdmin }),
+        JSON.stringify({ message: "Admin already exists", user: existingAdmin }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
@@ -41,7 +41,19 @@ serve(async (req) => {
       );
     }
 
-    // Criar usuário admin no auth
+    // Get admin organization
+    const { data: adminOrg, error: orgError } = await supabaseClient
+      .from('organizations')
+      .select('*')
+      .eq('email', 'julioquintanilha@hotmail.com')
+      .single();
+
+    if (orgError) {
+      console.error("Error fetching admin organization:", orgError);
+      throw orgError;
+    }
+
+    // Create admin user in auth
     const { data: authUser, error: authError } = await supabaseClient.auth.admin.createUser({
       email: 'julioquintanilha@hotmail.com',
       password: 'Gigi553518-+.#',
@@ -49,18 +61,18 @@ serve(async (req) => {
     });
 
     if (authError) {
-      console.error("Erro ao criar usuário admin:", authError);
+      console.error("Error creating admin user:", authError);
       throw authError;
     }
 
-    // Vincular usuário à organização admin
+    // Link user to admin organization
     const { data: userData, error: userError } = await supabaseClient
       .from('users')
       .insert({
         id: authUser.user.id,
-        organization_id: '00000000-0000-0000-0000-000000000000',
+        organization_id: adminOrg.id,
         first_name: 'Admin',
-        last_name: 'Sistema',
+        last_name: 'System',
         role: 'admin',
         email: 'julioquintanilha@hotmail.com'
       })
@@ -68,13 +80,13 @@ serve(async (req) => {
       .single();
 
     if (userError) {
-      console.error("Erro ao inserir usuário no banco:", userError);
+      console.error("Error inserting user in database:", userError);
       throw userError;
     }
 
     return new Response(
       JSON.stringify({ 
-        message: "Usuário admin criado com sucesso", 
+        message: "Admin user created successfully", 
         user: userData 
       }),
       {
@@ -83,7 +95,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Erro na função:", error);
+    console.error("Function error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

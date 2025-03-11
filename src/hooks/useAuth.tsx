@@ -37,10 +37,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Buscar dados do usuário
+      // Fetch user data with organization details
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('*, organizations(*)')
+        .select('*, organization:organizations(*)')
         .eq('id', userId)
         .single();
 
@@ -52,26 +52,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           organizationId: userData.organization_id,
           firstName: userData.first_name,
           lastName: userData.last_name,
-          email: userData.organizations.email,
+          email: userData.organization.email,
           role: userData.role,
           createdAt: userData.created_at,
           updatedAt: userData.updated_at
         };
 
         const orgData: Organization = {
-          id: userData.organizations.id,
-          name: userData.organizations.name,
-          email: userData.organizations.email,
-          phone: userData.organizations.phone,
-          createdAt: userData.organizations.created_at,
-          updatedAt: userData.organizations.updated_at,
-          subscriptionStatus: userData.organizations.subscription_status,
-          subscriptionDueDate: userData.organizations.subscription_due_date,
-          subscriptionAmount: userData.organizations.subscription_amount,
-          lastPaymentDate: userData.organizations.last_payment_date,
-          gateway: userData.organizations.gateway,
-          isAdmin: userData.organizations.is_admin,
-          blocked: userData.organizations.blocked
+          id: userData.organization.id,
+          name: userData.organization.name,
+          email: userData.organization.email,
+          phone: userData.organization.phone,
+          createdAt: userData.organization.created_at,
+          updatedAt: userData.organization.updated_at,
+          subscriptionStatus: userData.organization.subscription_status,
+          subscriptionDueDate: userData.organization.subscription_due_date,
+          subscriptionAmount: userData.organization.subscription_amount,
+          lastPaymentDate: userData.organization.last_payment_date,
+          gateway: userData.organization.gateway,
+          isAdmin: userData.organization.is_admin,
+          blocked: userData.organization.blocked
         };
 
         setAppUser(appUserData);
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAdmin(orgData.isAdmin);
         setIsBlocked(orgData.blocked);
 
-        // Verificar se a assinatura está prestes a vencer
+        // Check if subscription is about to expire
         const dueDate = new Date(orgData.subscriptionDueDate);
         const today = new Date();
         const diffTime = dueDate.getTime() - today.getTime();
@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSubscriptionExpiringSoon(diffDays <= 7 && diffDays > 0 && orgData.subscriptionStatus === 'active');
       }
     } catch (error: any) {
-      console.error('Erro ao buscar dados do usuário:', error);
+      console.error('Error fetching user data:', error);
     }
   };
 
@@ -138,26 +138,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (error) throw error;
       
-      // Redirecionar com base no tipo de usuário
+      // Redirect based on user type
       const { data: userData } = await supabase
         .from('users')
-        .select('*, organizations(*)')
+        .select('*, organization:organizations(*)')
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single();
 
-      if (userData?.organizations?.is_admin) {
+      if (userData?.organization?.is_admin) {
         navigate('/admin');
       } else {
         navigate('/');
       }
       
       toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo de volta!",
+        title: "Login successful",
+        description: "Welcome back!",
       });
     } catch (error: any) {
       toast({
-        title: "Erro ao fazer login",
+        title: "Login error",
         description: error.message,
         variant: "destructive",
       });
@@ -166,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, orgName: string) => {
     try {
-      // Verificar se o email já está sendo usado
+      // Check if email is already in use
       const { data: emailCheck } = await supabase
         .from('organizations')
         .select('email')
@@ -174,10 +174,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (emailCheck) {
-        throw new Error('Este email já está sendo usado');
+        throw new Error('This email is already in use');
       }
 
-      // Criar usuário no Auth
+      // Create Auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -186,7 +186,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (authError) throw authError;
       
       if (authData.user) {
-        // Criar organização
+        // Create organization
         const { data: orgData, error: orgError } = await supabase
           .from('organizations')
           .insert({
@@ -199,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
         if (orgError) throw orgError;
         
-        // Criar usuário associado à organização
+        // Create user associated with organization
         const { error: userError } = await supabase
           .from('users')
           .insert({
@@ -213,12 +213,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       toast({
-        title: "Conta criada com sucesso",
-        description: "Você já pode fazer login no sistema.",
+        title: "Account created successfully",
+        description: "You can now log in to the system.",
       });
     } catch (error: any) {
       toast({
-        title: "Erro ao criar conta",
+        title: "Error creating account",
         description: error.message,
         variant: "destructive",
       });
@@ -231,12 +231,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       navigate('/login');
       toast({
-        title: "Logout realizado com sucesso",
-        description: "Até logo!",
+        title: "Logout successful",
+        description: "See you soon!",
       });
     } catch (error: any) {
       toast({
-        title: "Erro ao fazer logout",
+        title: "Logout error",
         description: error.message,
         variant: "destructive",
       });

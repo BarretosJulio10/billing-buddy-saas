@@ -1,65 +1,85 @@
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/components/ui/use-toast';
+import { Organization } from '@/types/organization';
+import { useAuth } from './useAuth';
 
 interface OrganizationContextType {
-  updateOrganizationDetails: (data: {
-    name?: string;
-    phone?: string;
-  }) => Promise<void>;
-  loading: boolean;
+  organization: Organization | null;
+  isLoading: boolean;
+  error: Error | null;
+  refreshOrganization: () => Promise<void>;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
 
 export function OrganizationProvider({ children }: { children: React.ReactNode }) {
-  const [loading, setLoading] = useState(false);
-  const { organization, refetchUserData } = useAuth();
-  const { toast } = useToast();
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const { organization: authOrganization } = useAuth();
 
-  const updateOrganizationDetails = async (data: { name?: string; phone?: string }) => {
-    if (!organization) return;
-    
+  const fetchOrganization = async () => {
+    if (authOrganization) {
+      setOrganization(authOrganization);
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      setLoading(true);
+      setIsLoading(true);
+      setError(null);
       
-      const { error } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('organizations')
-        .update({
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (data) {
+        const org: Organization = {
+          id: data.id,
           name: data.name,
+          email: data.email,
           phone: data.phone,
-        })
-        .eq('id', organization.id);
-        
-      if (error) throw error;
-      
-      // Atualizar dados do contexto
-      await refetchUserData();
-      
-      toast({
-        title: "Dados atualizados",
-        description: "Os dados da empresa foram atualizados com sucesso",
-      });
-    } catch (error: any) {
-      console.error('Erro ao atualizar dados da organização:', error);
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+          subscriptionStatus: data.subscription_status,
+          subscriptionDueDate: data.subscription_due_date,
+          subscriptionAmount: data.subscription_amount,
+          lastPaymentDate: data.last_payment_date,
+          gateway: data.gateway,
+          isAdmin: data.is_admin,
+          blocked: data.blocked
+        };
+        setOrganization(org);
+      }
+    } catch (err: any) {
+      setError(err);
+      console.error('Error fetching organization:', err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const value = {
-    updateOrganizationDetails,
-    loading,
+  useEffect(() => {
+    fetchOrganization();
+  }, [authOrganization]);
+
+  const refreshOrganization = async () => {
+    await fetchOrganization();
   };
 
-  return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
+  return (
+    <OrganizationContext.Provider
+      value={{ organization, isLoading, error, refreshOrganization }}
+    >
+      {children}
+    </OrganizationContext.Provider>
+  );
 }
 
 export const useOrganization = () => {
