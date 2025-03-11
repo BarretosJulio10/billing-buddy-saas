@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchUserData } from './authUtils';
 
 export function useSignIn() {
   const navigate = useNavigate();
@@ -115,77 +116,21 @@ export function useSignIn() {
       
       console.log("User authenticated successfully:", authData.user.id);
 
-      // Get organization data for the user
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('organization_id, role, first_name, last_name')
-        .eq('id', authData.user.id)
-        .maybeSingle();
+      // Fetch user and organization data
+      const { appUser, organization, isAdmin, isBlocked } = await fetchUserData(authData.user.id);
       
-      if (userError) {
-        console.error("Error fetching user data:", userError);
-        throw userError;
-      }
-      
-      if (!userData) {
-        console.error("User data not found for ID:", authData.user.id);
-        // Create user entry if not exists
-        const { error: createUserError } = await supabase
-          .from('users')
-          .insert({
-            id: authData.user.id,
-            email: email,
-            role: 'admin', // Default role
-          });
-          
-        if (createUserError) {
-          console.error("Error creating user data:", createUserError);
-          throw createUserError;
-        }
-        
-        // Retry fetching user data
-        const { data: retryUserData, error: retryUserError } = await supabase
-          .from('users')
-          .select('organization_id, role, first_name, last_name')
-          .eq('id', authData.user.id)
-          .maybeSingle();
-          
-        if (retryUserError || !retryUserData) {
-          console.error("Error fetching retry user data:", retryUserError);
-          throw new Error("User data not found. Please contact support.");
-        }
-        
-        console.log("Created and retrieved user data:", retryUserData);
-        
-        // Now redirect to registration completion page
+      if (!appUser) {
+        // User needs to complete profile
         navigate('/complete-profile');
         return;
       }
 
-      console.log("User data retrieved:", userData);
-      
-      // Now fetch the organization separately
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .select('*')
-        .eq('id', userData.organization_id)
-        .maybeSingle();
-        
-      if (orgError) {
-        console.error("Error fetching organization data:", orgError);
-        throw orgError;
-      }
-      
-      if (!orgData) {
-        console.error("Organization not found:", userData.organization_id);
+      if (!organization) {
+        console.error("Organization not found for user:", appUser.id);
         throw new Error("Organization data not found. Please contact support.");
       }
 
       // Determine if user is admin and redirect accordingly
-      const isAdmin = orgData.is_admin === true;
-      console.log("Is admin:", isAdmin);
-      
-      // Modificado para garantir que admin vai para o painel admin
       if (isAdmin || email === 'julioquintanilha@hotmail.com') {
         navigate('/admin');
       } else {
