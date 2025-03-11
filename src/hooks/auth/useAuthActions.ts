@@ -30,37 +30,34 @@ export function useAuthActions() {
         return;
       }
 
-      // Avoid nesting queries by separating each database call
-      let isAdmin = false;
+      // Handle regular users
       let redirectPath = '/';
       
-      // First query - Get user organization ID
-      const userResult = await supabase
+      // Using a flat approach to avoid deep type instantiations
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('organization_id')
         .eq('email', email)
-        .single();
+        .maybeSingle();
       
-      if (userResult.error) {
-        console.error('Error fetching user data:', userResult.error);
+      if (userError) {
+        console.error('Error fetching user data:', userError);
       } 
-      else if (userResult.data && userResult.data.organization_id) {
-        // Second query - only executed if first query succeeds
-        const orgId = userResult.data.organization_id;
-        const orgResult = await supabase
+      else if (userData && userData.organization_id) {
+        const orgId = userData.organization_id;
+        
+        // Separate database call to avoid nesting
+        const { data: orgData, error: orgError } = await supabase
           .from('organizations')
           .select('is_admin')
           .eq('id', orgId)
-          .single();
+          .maybeSingle();
         
-        if (orgResult.error) {
-          console.error('Error fetching organization data:', orgResult.error);
+        if (orgError) {
+          console.error('Error fetching organization data:', orgError);
         } 
-        else if (orgResult.data) {
-          isAdmin = Boolean(orgResult.data.is_admin);
-          if (isAdmin) {
-            redirectPath = '/admin';
-          }
+        else if (orgData && orgData.is_admin) {
+          redirectPath = '/admin';
         }
       }
 
