@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -31,49 +30,42 @@ export function useAuthActions() {
         return;
       }
 
-      // Use simple variable assignments to avoid deeply nested queries
+      // Avoid nesting queries by separating each database call
       let isAdmin = false;
-      let shouldNavigate = true;
+      let redirectPath = '/';
       
-      try {
-        // Step 1: Get user data
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('organization_id')
-          .eq('email', email)
+      // First query - Get user organization ID
+      const userResult = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('email', email)
+        .single();
+      
+      if (userResult.error) {
+        console.error('Error fetching user data:', userResult.error);
+      } 
+      else if (userResult.data && userResult.data.organization_id) {
+        // Second query - only executed if first query succeeds
+        const orgId = userResult.data.organization_id;
+        const orgResult = await supabase
+          .from('organizations')
+          .select('is_admin')
+          .eq('id', orgId)
           .single();
         
-        if (userError) {
-          console.error('Error fetching user data:', userError);
-          shouldNavigate = false;
-        } else if (userData && userData.organization_id) {
-          // Step 2: Check if admin
-          const { data: orgData, error: orgError } = await supabase
-            .from('organizations')
-            .select('is_admin')
-            .eq('id', userData.organization_id)
-            .single();
-            
-          if (orgError) {
-            console.error('Error fetching organization data:', orgError);
-          } else if (orgData) {
-            isAdmin = Boolean(orgData.is_admin);
+        if (orgResult.error) {
+          console.error('Error fetching organization data:', orgResult.error);
+        } 
+        else if (orgResult.data) {
+          isAdmin = Boolean(orgResult.data.is_admin);
+          if (isAdmin) {
+            redirectPath = '/admin';
           }
         }
-      } catch (e) {
-        console.error('Error during user/organization lookup:', e);
       }
 
-      // Navigate based on results
-      if (shouldNavigate) {
-        if (isAdmin) {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
-      } else {
-        navigate('/');
-      }
+      // Navigate based on determined path
+      navigate(redirectPath);
 
       toast({
         title: "Login successful",

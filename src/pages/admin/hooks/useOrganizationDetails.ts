@@ -83,8 +83,8 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      // Call the RPC function without type parameters but with safely typed parameters object
-      const params = { org_id: orgId };
+      // Use any type for params to avoid the type error
+      const params: any = { org_id: orgId };
       const { data, error } = await supabase.rpc(functionName, params);
       
       if (error) throw error;
