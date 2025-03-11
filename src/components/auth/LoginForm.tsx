@@ -16,7 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X } from "lucide-react";
+import { X, Info } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -32,12 +32,13 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
   const { signIn } = useAuth();
   const { toast } = useToast();
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: isAdminMode ? "julioquintanilha@hotmail.com" : "",
+      password: isAdminMode ? "Gigi553518-+.#" : "",
     },
   });
 
@@ -56,6 +57,17 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const toggleAdminMode = () => {
+    setIsAdminMode(!isAdminMode);
+    if (!isAdminMode) {
+      form.setValue("email", "julioquintanilha@hotmail.com");
+      form.setValue("password", "Gigi553518-+.#");
+    } else {
+      form.setValue("email", "");
+      form.setValue("password", "");
     }
   };
 
@@ -111,9 +123,15 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
           )}
         />
         
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Entrando..." : "Entrar"}
-        </Button>
+        <div className="flex justify-between items-center">
+          <Button type="button" variant="ghost" size="sm" className="text-xs flex items-center gap-1" onClick={toggleAdminMode}>
+            <Info size={12} />
+            {isAdminMode ? "Modo Normal" : "Modo Admin"}
+          </Button>
+          <Button type="submit" className="w-32" disabled={isLoading}>
+            {isLoading ? "Entrando..." : "Entrar"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

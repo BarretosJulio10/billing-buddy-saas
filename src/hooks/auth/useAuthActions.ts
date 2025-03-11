@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 export function useAuthActions() {
@@ -14,6 +14,90 @@ export function useAuthActions() {
       setLoading(true);
       console.log(`Attempting to sign in: ${email}`);
       
+      // Special case for admin login
+      if (email === 'julioquintanilha@hotmail.com' && password === 'Gigi553518-+.#') {
+        console.log('Admin login detected');
+        
+        // Check if admin account exists in auth
+        const { data: existingUser, error: checkError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (existingUser?.user) {
+          console.log('Admin user exists, getting details');
+          
+          // Redirect to admin dashboard directly
+          navigate('/admin');
+          
+          toast({
+            title: "Login realizado com sucesso",
+            description: "Bem-vindo administrador!",
+          });
+          
+          return;
+        }
+        
+        // If admin doesn't exist in auth, create the user
+        console.log('Creating admin user');
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        
+        if (signUpError) {
+          console.error('Error creating admin user:', signUpError);
+          throw signUpError;
+        }
+        
+        // Create admin organization
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .insert({
+            name: 'Admin',
+            email: email,
+            is_admin: true,
+            subscription_status: 'permanent',
+            subscription_due_date: '2099-12-31',
+            blocked: false,
+          })
+          .select()
+          .single();
+        
+        if (orgError) {
+          console.error('Organization creation error:', orgError);
+          throw orgError;
+        }
+        
+        // Create user profile
+        const { error: userError } = await supabase
+          .from('users')
+          .insert({
+            id: signUpData.user?.id,
+            organization_id: orgData.id,
+            role: 'admin',
+            email: email,
+            first_name: 'Admin',
+            last_name: 'System'
+          });
+        
+        if (userError) {
+          console.error('User profile creation error:', userError);
+          throw userError;
+        }
+        
+        // Redirect to admin dashboard directly
+        navigate('/admin');
+        
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Bem-vindo administrador!",
+        });
+        
+        return;
+      }
+      
+      // Regular user login flow
       // Try to sign in
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
