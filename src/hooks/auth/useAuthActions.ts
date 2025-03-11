@@ -34,31 +34,21 @@ export function useAuthActions() {
       // Default redirect path
       let redirectPath = '/';
       
-      // Fetch user and organization data
       try {
-        // Get user data first
         const userResult = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
-          .maybeSingle();
-        
-        if (userResult.error) {
-          console.error('Error fetching user:', userResult.error);
-        } 
-        else if (userResult.data && userResult.data.organization_id) {
-          // Get organization data next with the organization_id
-          const orgId = userResult.data.organization_id;
+          .single();
+
+        if (userResult.data?.organization_id) {
           const orgResult = await supabase
             .from('organizations')
             .select('is_admin')
-            .eq('id', orgId)
-            .maybeSingle();
-            
-          if (orgResult.error) {
-            console.error('Error fetching organization:', orgResult.error);
-          }
-          else if (orgResult.data && orgResult.data.is_admin) {
+            .eq('id', userResult.data.organization_id)
+            .single();
+
+          if (orgResult.data?.is_admin) {
             redirectPath = '/admin';
           }
         }
@@ -66,7 +56,6 @@ export function useAuthActions() {
         console.error('Error in data queries:', queryError);
       }
       
-      // Navigate based on the determined path
       navigate(redirectPath);
       
       toast({
@@ -89,6 +78,8 @@ export function useAuthActions() {
   const signUp = async (email: string, password: string, orgName: string) => {
     try {
       setLoading(true);
+      
+      // Check if email exists
       const { data: emailCheck } = await supabase
         .from('organizations')
         .select('email')
@@ -119,16 +110,18 @@ export function useAuthActions() {
           
         if (orgError) throw orgError;
         
-        const { error: userError } = await supabase
-          .from('users')
-          .insert({
-            id: authData.user.id,
-            organization_id: orgData.id,
-            role: 'admin',
-            email: email
-          });
-          
-        if (userError) throw userError;
+        if (orgData) {
+          const { error: userError } = await supabase
+            .from('users')
+            .insert({
+              id: authData.user.id,
+              organization_id: orgData.id,
+              role: 'admin',
+              email: email
+            });
+            
+          if (userError) throw userError;
+        }
       }
       
       toast({

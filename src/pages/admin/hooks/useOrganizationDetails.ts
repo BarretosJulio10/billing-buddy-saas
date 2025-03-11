@@ -12,6 +12,10 @@ interface OrganizationStats {
 
 type CountFunctionName = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
 
+interface RpcParams {
+  org_id: string;
+}
+
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -27,16 +31,13 @@ export function useOrganizationDetails(id: string | undefined) {
       setLoading(true);
       const { data, error } = await supabase
         .from('organizations')
-        .select('*')
+        .select()
         .eq('id', orgId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
       if (data) {
-        const subscriptionStatus = data.subscription_status as Organization['subscriptionStatus'];
-        const gateway = data.gateway as Organization['gateway'];
-        
         const org: Organization = {
           id: data.id,
           name: data.name,
@@ -44,16 +45,15 @@ export function useOrganizationDetails(id: string | undefined) {
           phone: data.phone,
           createdAt: data.created_at,
           updatedAt: data.updated_at,
-          subscriptionStatus: subscriptionStatus || 'active',
+          subscriptionStatus: data.subscription_status || 'active',
           subscriptionDueDate: data.subscription_due_date,
           subscriptionAmount: data.subscription_amount,
           lastPaymentDate: data.last_payment_date,
-          gateway: gateway || 'mercadopago',
+          gateway: data.gateway || 'mercadopago',
           isAdmin: data.is_admin,
           blocked: data.blocked
         };
         setOrganization(org);
-
         await fetchStats(orgId);
       }
     } catch (error) {
@@ -63,7 +63,6 @@ export function useOrganizationDetails(id: string | undefined) {
         description: "Could not load company details",
         variant: "destructive"
       });
-      return null;
     } finally {
       setLoading(false);
     }
@@ -71,42 +70,26 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define a proper interface for the RPC parameters
-      interface RpcParams {
-        org_id: string;
-      }
-
-      // Use a generic helper function with two type parameters
-      async function fetchCount<T, P extends Record<string, any>>(
-        functionName: CountFunctionName, 
-        params: P
-      ): Promise<number> {
-        const { data, error } = await supabase.rpc<T>(functionName, params);
+      const fetchSingleStat = async (functionName: CountFunctionName): Promise<number> => {
+        const { data, error } = await supabase.rpc<number, RpcParams>(
+          functionName,
+          { org_id: orgId }
+        );
         
         if (error) throw error;
         return typeof data === 'number' ? data : 0;
-      }
-
-      const params: RpcParams = { org_id: orgId };
+      };
 
       const [customers, invoices, collections] = await Promise.all([
-        fetchCount<number, RpcParams>('count_customers_by_org', params),
-        fetchCount<number, RpcParams>('count_invoices_by_org', params),
-        fetchCount<number, RpcParams>('count_collections_by_org', params)
+        fetchSingleStat('count_customers_by_org'),
+        fetchSingleStat('count_invoices_by_org'),
+        fetchSingleStat('count_collections_by_org')
       ]);
       
-      setStats({
-        customers,
-        invoices,
-        collections
-      });
+      setStats({ customers, invoices, collections });
     } catch (error) {
       console.error('Error fetching statistics:', error);
-      setStats({
-        customers: 0,
-        invoices: 0,
-        collections: 0
-      });
+      setStats({ customers: 0, invoices: 0, collections: 0 });
     }
   };
 
