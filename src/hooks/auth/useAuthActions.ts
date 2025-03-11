@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -31,34 +30,25 @@ export function useAuthActions() {
         return;
       }
 
-      // Default redirect path
+      // For other users, check organization details
+      const { data: user } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('email', email)
+        .maybeSingle();
+
       let redirectPath = '/';
       
-      try {
-        // Use a more direct approach with explicit error handling to avoid deep types
-        const userQuery = await supabase
-          .from('users')
-          .select('organization_id')
-          .eq('email', email)
+      if (user?.organization_id) {
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('is_admin')
+          .eq('id', user.organization_id)
           .maybeSingle();
-        
-        if (userQuery.error) {
-          console.error('Error fetching user:', userQuery.error);
-        } else if (userQuery.data?.organization_id) {
-          const orgQuery = await supabase
-            .from('organizations')
-            .select('is_admin')
-            .eq('id', userQuery.data.organization_id)
-            .maybeSingle();
-            
-          if (orgQuery.error) {
-            console.error('Error fetching organization:', orgQuery.error);
-          } else if (orgQuery.data?.is_admin) {
-            redirectPath = '/admin';
-          }
+
+        if (org?.is_admin) {
+          redirectPath = '/admin';
         }
-      } catch (queryError) {
-        console.error('Error in data queries:', queryError);
       }
       
       navigate(redirectPath);

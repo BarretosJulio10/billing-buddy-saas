@@ -67,7 +67,6 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Use a specific approach for each RPC call to avoid type constraints
       const customers = await fetchSingleStat('count_customers_by_org', orgId);
       const invoices = await fetchSingleStat('count_invoices_by_org', orgId);
       const collections = await fetchSingleStat('count_collections_by_org', orgId);
@@ -79,19 +78,23 @@ export function useOrganizationDetails(id: string | undefined) {
     }
   };
 
-  // Helper function to handle RPC calls properly
   const fetchSingleStat = async (functionName: string, orgId: string): Promise<number> => {
     try {
-      // Use a more generic approach that doesn't rely on strict typing for RPC calls
-      const { data, error } = await supabase
-        .rpc(functionName, { org_id: orgId });
+      const { data, error } = await supabase.rpc(functionName, { 
+        org_id: orgId 
+      } as any); // Use type assertion to bypass strict typing
       
       if (error) throw error;
       
-      // Handle the response safely by checking the structure without relying on types
-      if (data && typeof data === 'object' && 'count' in data) {
-        return Number(data.count) || 0;
+      if (data && typeof data === 'number') {
+        return data;
       }
+      
+      // Fallback for object response
+      if (data && typeof data === 'object' && 'count' in data) {
+        return Number((data as { count: number }).count) || 0;
+      }
+      
       return 0;
     } catch (error) {
       console.error(`Error in ${functionName}:`, error);
