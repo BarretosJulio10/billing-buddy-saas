@@ -72,14 +72,13 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define a simpler type for RPC params with string keys and any values
-      type RpcParams = { [key: string]: unknown };
-
+      // Use any for the params type since we're just passing a simple object
       async function fetchCount(functionName: RpcFunction): Promise<number> {
-        // Create params as a simple object with the correct type
-        const params: RpcParams = { org_id: orgId };
-        
-        const { data, error } = await supabase.rpc(functionName, params);
+        // Use type assertion to bypass TypeScript's strict checking
+        const { data, error } = await supabase.rpc(
+          functionName, 
+          { org_id: orgId } as any
+        );
         
         if (error) throw error;
         return typeof data === 'number' ? data : 0;

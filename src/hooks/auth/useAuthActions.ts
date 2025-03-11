@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -20,6 +21,7 @@ export function useAuthActions() {
       
       if (error) throw error;
       
+      // Special case for admin user
       if (email === 'julioquintanilha@hotmail.com') {
         navigate('/admin');
         toast({
@@ -29,34 +31,37 @@ export function useAuthActions() {
         return;
       }
 
+      // Default redirect path
       let redirectPath = '/';
       
       try {
-        const userQuery = await supabase
+        // First get the user's organization ID
+        const { data: userData, error: userError } = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
           .limit(1);
-          
-        if (userQuery.error) {
-          console.error('Error fetching user:', userQuery.error);
-        } 
-        else if (userQuery.data && userQuery.data.length > 0) {
-          const orgId = userQuery.data[0].organization_id;
+        
+        if (userError) {
+          console.error('Error fetching user:', userError);
+        }
+        else if (userData && userData.length > 0) {
+          const orgId = userData[0].organization_id;
           
           if (orgId) {
-            const orgQuery = await supabase
+            // Then check if the organization is an admin organization
+            const { data: orgData, error: orgError } = await supabase
               .from('organizations')
               .select('is_admin')
               .eq('id', orgId)
               .limit(1);
-              
-            if (orgQuery.error) {
-              console.error('Error fetching organization:', orgQuery.error);
-            } 
-            else if (orgQuery.data && orgQuery.data.length > 0) {
-              const isAdmin = orgQuery.data[0].is_admin;
-              if (isAdmin) {
+            
+            if (orgError) {
+              console.error('Error fetching organization:', orgError);
+            }
+            else if (orgData && orgData.length > 0) {
+              // If the organization is an admin organization, redirect to admin page
+              if (orgData[0].is_admin) {
                 redirectPath = '/admin';
               }
             }
@@ -66,6 +71,7 @@ export function useAuthActions() {
         console.error('Error during redirection logic:', err);
       }
       
+      // Navigate based on the determined path
       navigate(redirectPath);
       
       toast({
@@ -173,4 +179,3 @@ export function useAuthActions() {
     loading,
   };
 }
-
