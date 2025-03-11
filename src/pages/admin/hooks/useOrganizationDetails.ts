@@ -20,12 +20,6 @@ export function useOrganizationDetails(id: string | undefined) {
     collections: 0
   });
 
-  useEffect(() => {
-    if (id) {
-      fetchOrganizationDetails(id);
-    }
-  }, [id]);
-
   const fetchOrganizationDetails = async (orgId: string) => {
     try {
       setLoading(true);
@@ -76,9 +70,9 @@ export function useOrganizationDetails(id: string | undefined) {
   const fetchStats = async (orgId: string) => {
     try {
       const [customersCount, invoicesCount, collectionsCount] = await Promise.all([
-        supabase.rpc('count_customers_by_org', { org_id: orgId }),
-        supabase.rpc('count_invoices_by_org', { org_id: orgId }),
-        supabase.rpc('count_collections_by_org', { org_id: orgId })
+        supabase.rpc('count_customers_by_org', { org_id: orgId }) as Promise<{ data: number }>,
+        supabase.rpc('count_invoices_by_org', { org_id: orgId }) as Promise<{ data: number }>,
+        supabase.rpc('count_collections_by_org', { org_id: orgId }) as Promise<{ data: number }>
       ]);
       
       setStats({
@@ -95,6 +89,12 @@ export function useOrganizationDetails(id: string | undefined) {
       });
     }
   };
+
+  useEffect(() => {
+    if (id) {
+      fetchOrganizationDetails(id);
+    }
+  }, [id]);
 
   return { organization, loading, stats, fetchOrganizationDetails };
 }
