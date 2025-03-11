@@ -25,19 +25,24 @@ export function useAuthActions() {
         return;
       }
 
-      const { data: userOrg } = await supabase
+      const { data } = await supabase
         .from('users')
-        .select(`
-          organization_id,
-          organizations:organization_id (
-            is_admin
-          )
-        `)
+        .select('organization_id')
         .eq('email', email)
         .maybeSingle();
       
-      if (userOrg?.organizations?.is_admin) {
-        navigate('/admin');
+      if (data?.organization_id) {
+        const { data: orgData } = await supabase
+          .from('organizations')
+          .select('is_admin')
+          .eq('id', data.organization_id)
+          .single();
+          
+        if (orgData?.is_admin) {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         navigate('/');
       }
