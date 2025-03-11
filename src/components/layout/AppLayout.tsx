@@ -1,9 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import type { ReactNode } from 'react';
 
-function AppLayout({ children }: { children: React.ReactNode }) {
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 

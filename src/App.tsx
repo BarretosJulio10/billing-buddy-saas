@@ -104,7 +104,9 @@ function App() {
                 path="/" 
                 element={
                   <RequireAuth>
-                    <AppLayout />
+                    <AppLayout>
+                      <Outlet />
+                    </AppLayout>
                   </RequireAuth>
                 }
               >
@@ -121,7 +123,9 @@ function App() {
                 path="/admin" 
                 element={
                   <RequireAuth isAdminRequired={true}>
-                    <AdminLayout />
+                    <AdminLayout>
+                      <Outlet />
+                    </AdminLayout>
                   </RequireAuth>
                 }
               >
