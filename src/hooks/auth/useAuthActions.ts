@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -25,24 +26,29 @@ export function useAuthActions() {
         return;
       }
 
-      const { data } = await supabase
+      // Check if user exists and get organization info
+      const { data: userData } = await supabase
         .from('users')
         .select('organization_id')
         .eq('email', email)
-        .maybeSingle();
+        .single();
+
+      // Simplified conditional logic to avoid deep type nesting
+      if (!userData?.organization_id) {
+        navigate('/');
+        return;
+      }
       
-      if (data?.organization_id) {
-        const { data: orgData } = await supabase
-          .from('organizations')
-          .select('is_admin')
-          .eq('id', data.organization_id)
-          .single();
-          
-        if (orgData?.is_admin) {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
+      // Get organization data in a separate query
+      const { data: orgData } = await supabase
+        .from('organizations')
+        .select('is_admin')
+        .eq('id', userData.organization_id)
+        .single();
+      
+      // Navigate based on admin status
+      if (orgData?.is_admin) {
+        navigate('/admin');
       } else {
         navigate('/');
       }
