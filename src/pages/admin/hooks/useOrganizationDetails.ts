@@ -78,9 +78,9 @@ export function useOrganizationDetails(id: string | undefined) {
       const params: RpcParams = { org_id: orgId };
       
       // Como temos a tipagem definida corretamente, não precisamos de type assertion
-      const customersPromise = supabase.rpc<number>('count_customers_by_org', params);
-      const invoicesPromise = supabase.rpc<number>('count_invoices_by_org', params);
-      const collectionsPromise = supabase.rpc<number>('count_collections_by_org', params);
+      const customersPromise = supabase.rpc<number, RpcParams>('count_customers_by_org', params);
+      const invoicesPromise = supabase.rpc<number, RpcParams>('count_invoices_by_org', params);
+      const collectionsPromise = supabase.rpc<number, RpcParams>('count_collections_by_org', params);
       
       const [
         customersResponse, 
