@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
@@ -9,8 +10,15 @@ interface OrganizationStats {
   collections: number;
 }
 
+// Define the shape of the RPC response
 interface StatResponse {
   count: number;
+}
+
+// Define the type for the RPC function name and params
+type FunctionName = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
+interface OrgIdParam {
+  org_id: string;
 }
 
 export function useOrganizationDetails(id: string | undefined) {
@@ -81,11 +89,13 @@ export function useOrganizationDetails(id: string | undefined) {
     }
   };
 
-  const fetchSingleStat = async (functionName: string, orgId: string): Promise<number> => {
+  const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      const { data, error } = await supabase.rpc<StatResponse>(functionName, {
-        org_id: orgId
-      });
+      // Correctly type the RPC call with both the return type and params type
+      const { data, error } = await supabase.rpc<StatResponse, OrgIdParam>(
+        functionName, 
+        { org_id: orgId }
+      );
       
       if (error) throw error;
       

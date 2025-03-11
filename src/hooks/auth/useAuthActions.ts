@@ -31,27 +31,39 @@ export function useAuthActions() {
         return;
       }
 
-      // Get user organization role
-      const { data: userData, error: userError } = await supabase
+      // Use separate variable assignments to avoid deep type nesting
+      // Step 1: Query the user
+      const userQuery = await supabase
         .from('users')
         .select('organization_id')
         .eq('email', email)
-        .single();
-
-      if (userError) {
-        console.error('Error fetching user data:', userError);
+        .maybeSingle();
+        
+      if (userQuery.error) {
+        console.error('Error fetching user data:', userQuery.error);
         navigate('/');
         return;
       }
-
+      
+      const userData = userQuery.data;
+      
+      // Step 2: If we have user data with an organization, query the organization
       if (userData?.organization_id) {
-        const { data: orgData, error: orgError } = await supabase
+        const orgQuery = await supabase
           .from('organizations')
           .select('is_admin')
           .eq('id', userData.organization_id)
-          .single();
-
-        if (!orgError && orgData?.is_admin) {
+          .maybeSingle();
+          
+        if (orgQuery.error) {
+          console.error('Error fetching organization data:', orgQuery.error);
+          navigate('/');
+          return;
+        }
+        
+        const orgData = orgQuery.data;
+        
+        if (orgData?.is_admin) {
           navigate('/admin');
         } else {
           navigate('/');
