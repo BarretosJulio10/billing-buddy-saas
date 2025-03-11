@@ -69,13 +69,17 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Uso de type assertion para resolver o problema de tipos com os parâmetros do RPC
-      const params = { org_id: orgId };
+      // Definindo explicitamente o tipo do objeto de parâmetros
+      interface RpcParams {
+        org_id: string;
+      }
       
-      // Usando type assertion "as any" para evitar erros de tipo com os parâmetros
-      const customersPromise = supabase.rpc('count_customers_by_org', params as any);
-      const invoicesPromise = supabase.rpc('count_invoices_by_org', params as any);
-      const collectionsPromise = supabase.rpc('count_collections_by_org', params as any);
+      const params: RpcParams = { org_id: orgId };
+      
+      // Chamando as funções RPC com tipagem correta
+      const customersPromise = supabase.rpc('count_customers_by_org', params);
+      const invoicesPromise = supabase.rpc('count_invoices_by_org', params);
+      const collectionsPromise = supabase.rpc('count_collections_by_org', params);
       
       const [
         customersResponse, 

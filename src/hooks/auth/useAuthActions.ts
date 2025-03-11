@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-// Interface simplificada para o dado do usuário para evitar a instanciação excessivamente profunda de tipos
+// Interface simplificada para evitar a instanciação excessivamente profunda de tipos
 interface UserOrganizationData {
   email?: string;
   organizations?: {
