@@ -1,4 +1,3 @@
-
 import { Users, FileText, Bell, Settings, Trash2, LayoutDashboard, Wifi, WifiOff, Database, MessageCircle, MessageCircleOff, Menu } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -76,7 +75,7 @@ export function AppSidebar() {
           <div className="flex items-center justify-between px-3 py-2">
             <div className="flex items-center">
               <SidebarTrigger 
-                className="md:hidden mr-2" 
+                className="md:hidden h-5 w-5 mr-2" 
                 onClick={(e) => {
                   e.preventDefault();
                   toggleSidebar();
