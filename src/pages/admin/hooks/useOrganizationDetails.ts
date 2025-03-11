@@ -10,12 +10,11 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define the return type from the RPC function
+// Define the proper types for the RPC function calls
 interface CountResult {
   count: number;
 }
 
-// Define the parameters for the RPC function
 interface RpcParams {
   org_id: string;
 }
@@ -77,26 +76,33 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      const fetchSingleStat = async (functionName: string): Promise<number> => {
-        const { data, error } = await supabase.rpc<CountResult, RpcParams>(
-          functionName as any,
-          { org_id: orgId }
-        );
-        
-        if (error) throw error;
-        return data?.count || 0;
-      };
-
-      const [customers, invoices, collections] = await Promise.all([
-        fetchSingleStat('count_customers_by_org'),
-        fetchSingleStat('count_invoices_by_org'),
-        fetchSingleStat('count_collections_by_org')
-      ]);
+      // Use a specific approach for each RPC call to avoid type constraints
+      const customers = await fetchSingleStat('count_customers_by_org', orgId);
+      const invoices = await fetchSingleStat('count_invoices_by_org', orgId);
+      const collections = await fetchSingleStat('count_collections_by_org', orgId);
       
       setStats({ customers, invoices, collections });
     } catch (error) {
       console.error('Error fetching statistics:', error);
       setStats({ customers: 0, invoices: 0, collections: 0 });
+    }
+  };
+
+  // Helper function to handle RPC calls properly
+  const fetchSingleStat = async (functionName: string, orgId: string): Promise<number> => {
+    try {
+      const { data, error } = await supabase
+        .rpc(functionName, { org_id: orgId });
+      
+      if (error) throw error;
+      
+      // Handle the response safely
+      return typeof data === 'object' && data !== null && 'count' in data 
+        ? (data.count as number) 
+        : 0;
+    } catch (error) {
+      console.error(`Error in ${functionName}:`, error);
+      return 0;
     }
   };
 
