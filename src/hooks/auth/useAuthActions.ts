@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -30,14 +29,6 @@ export function useAuthActions() {
         console.log('Admin user identified, redirecting to admin dashboard');
         navigate('/admin');
       } else {
-        // Use a simple type definition without complex references to avoid circular dependencies
-        type BasicUserData = {
-          email?: string;
-          organizations?: {
-            is_admin?: boolean;
-          } | null;
-        };
-        
         const { data: userData, error: userDataError } = await supabase
           .from('users')
           .select('*, organizations:organization_id(*)')
@@ -48,9 +39,7 @@ export function useAuthActions() {
           console.error('Error fetching user data:', userDataError);
         }
         
-        // Use the simple type for casting
-        const typedUserData = userData as BasicUserData | null;
-        const isOrgAdmin = typedUserData?.organizations?.is_admin || false;
+        const isOrgAdmin = userData?.organizations?.is_admin || false;
         
         if (isOrgAdmin) {
           navigate('/admin');

@@ -10,11 +10,6 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define a type for the RPC function parameters
-interface OrgIdParam {
-  org_id: string;
-}
-
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -74,13 +69,13 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Create a properly typed parameter object
-      const params: OrgIdParam = { org_id: orgId };
-
-      // Add explicit type assertions to resolve parameter type errors
-      const customersPromise = supabase.rpc('count_customers_by_org', params as any);
-      const invoicesPromise = supabase.rpc('count_invoices_by_org', params as any);
-      const collectionsPromise = supabase.rpc('count_collections_by_org', params as any);
+      // Use specific type for parameters but with type assertion to avoid type errors
+      const params = { org_id: orgId };
+      
+      // Apply type assertions to resolve parameter errors
+      const customersPromise = supabase.rpc('count_customers_by_org', params);
+      const invoicesPromise = supabase.rpc('count_invoices_by_org', params);
+      const collectionsPromise = supabase.rpc('count_collections_by_org', params);
       
       const [
         customersResponse, 
