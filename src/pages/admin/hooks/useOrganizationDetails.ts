@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
@@ -81,12 +82,16 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
+      // Let TypeScript infer the types by not providing explicit generic arguments
       const { data, error } = await supabase
-        .rpc(functionName, { org_id: orgId });
+        .rpc(functionName, { 
+          org_id: orgId 
+        });
       
       if (error) throw error;
       
-      return data ? Number(data) : 0;
+      // Safely convert the response to a number
+      return data !== null && data !== undefined ? Number(data) : 0;
     } catch (error) {
       console.error(`Error in ${functionName}:`, error);
       return 0;
