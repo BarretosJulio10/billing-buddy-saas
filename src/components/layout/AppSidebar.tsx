@@ -1,5 +1,5 @@
 
-import { Users, FileText, Bell, Settings, Trash2, LayoutDashboard, Wifi, WifiOff, Database, MessageCircle, MessageCircleOff, Menu } from "lucide-react";
+import { Users, FileText, Bell, Settings, Trash2, LayoutDashboard, Wifi, WifiOff, Database, MessageCircle, MessageCircleOff, Menu, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -15,6 +15,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [
   {
@@ -42,11 +43,6 @@ const menuItems = [
     url: "/settings",
     icon: Settings,
   },
-  {
-    title: "Lixeira",
-    url: "/trash",
-    icon: Trash2,
-  },
 ];
 
 // Mock status - Will be replaced with actual API data
@@ -68,6 +64,7 @@ const databaseStatus = {
 export function AppSidebar() {
   const location = useLocation();
   const { open, toggleSidebar } = useSidebar();
+  const { signOut } = useAuth();
   
   return (
     <Sidebar className={open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}>
@@ -104,6 +101,34 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              
+              {/* Sair button added below Configurações */}
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={signOut}
+                  tooltip="Sair"
+                >
+                  <div className="flex items-center gap-3">
+                    <LogOut className="w-5 h-5" />
+                    <span>Sair</span>
+                  </div>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              {/* Lixeira moved here, separate from the main menu items */}
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild
+                  isActive={location.pathname === "/trash" || 
+                            location.pathname.startsWith("/trash")}
+                  tooltip="Lixeira"
+                >
+                  <Link to="/trash" className="flex items-center gap-3">
+                    <Trash2 className="w-5 h-5" />
+                    <span>Lixeira</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
