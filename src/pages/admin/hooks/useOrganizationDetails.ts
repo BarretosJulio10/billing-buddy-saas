@@ -82,11 +82,11 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      // Let TypeScript infer the types by not providing explicit generic arguments
-      const { data, error } = await supabase
-        .rpc(functionName, { 
-          org_id: orgId 
-        });
+      // Define the parameter explicitly with a type
+      const params: { org_id: string } = { org_id: orgId };
+      
+      // Call RPC function without type parameters, letting TypeScript infer the return type
+      const { data, error } = await supabase.rpc(functionName, params);
       
       if (error) throw error;
       
