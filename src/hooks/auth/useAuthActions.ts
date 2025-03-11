@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -43,14 +44,18 @@ export function useAuthActions() {
           console.error('Error fetching user data:', userDataError);
         }
 
-        const { data: orgData } = await supabase
-          .from('organizations')
-          .select('is_admin')
-          .eq('id', data?.organization_id)
-          .single();
-        
-        if (orgData?.is_admin) {
-          navigate('/admin');
+        if (data?.organization_id) {
+          const { data: orgData } = await supabase
+            .from('organizations')
+            .select('is_admin')
+            .eq('id', data.organization_id)
+            .single();
+          
+          if (orgData?.is_admin) {
+            navigate('/admin');
+          } else {
+            navigate('/');
+          }
         } else {
           navigate('/');
         }

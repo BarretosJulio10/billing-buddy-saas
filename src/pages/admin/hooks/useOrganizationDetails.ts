@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
@@ -71,10 +72,10 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      async function fetchCount(functionName: RpcFunction) {
+      async function fetchCount(functionName: RpcFunction): Promise<number> {
         const { data, error } = await supabase.rpc(functionName, { org_id: orgId });
         if (error) throw error;
-        return data as number;
+        return (data as number) || 0;
       }
 
       const [customers, invoices, collections] = await Promise.all([
@@ -84,9 +85,9 @@ export function useOrganizationDetails(id: string | undefined) {
       ]);
       
       setStats({
-        customers: customers || 0,
-        invoices: invoices || 0,
-        collections: collections || 0
+        customers,
+        invoices,
+        collections
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);
