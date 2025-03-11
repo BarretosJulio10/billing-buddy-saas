@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -31,35 +30,31 @@ export function useAuthActions() {
         return;
       }
 
-      // Completely restructure the redirection logic to avoid deep type instantiation
+      // Simplified redirection logic to avoid deep type instantiation
       let redirectPath = '/';
       
-      try {
-        // Use raw SQL query to avoid deep type instantiation issues
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('organization_id')
-          .eq('email', email)
+      // Get the user's organization role
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+      } else if (userData?.organization_id) {
+        // Check if the user's organization is an admin organization
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('is_admin')
+          .eq('id', userData.organization_id)
           .maybeSingle();
-          
-        if (userError) throw userError;
         
-        if (userData?.organization_id) {
-          const { data: orgData, error: orgError } = await supabase
-            .from('organizations')
-            .select('is_admin')
-            .eq('id', userData.organization_id)
-            .maybeSingle();
-            
-          if (orgError) throw orgError;
-          
-          if (orgData?.is_admin) {
-            redirectPath = '/admin';
-          }
+        if (orgError) {
+          console.error('Error fetching organization data:', orgError);
+        } else if (orgData?.is_admin) {
+          redirectPath = '/admin';
         }
-      } catch (queryError) {
-        console.error('Error during redirection logic:', queryError);
-        // Default to home page if there's an error in the redirection logic
       }
 
       navigate(redirectPath);
