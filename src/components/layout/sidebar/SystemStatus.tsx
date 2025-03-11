@@ -1,8 +1,7 @@
 
-import { Wifi, WifiOff, MessageCircle, MessageCircleOff, Database } from "lucide-react";
+import { Wifi, WifiOff, MessageCircle, MessageCircleOff, Database, Loader2 } from "lucide-react";
 
 // This would normally come from an API
-// In a real implementation, this would be fetched from a backend
 interface ServiceStatus {
   connected: boolean;
   lastConnection?: string;
@@ -13,16 +12,21 @@ interface SystemStatusProps {
   whatsappStatus: ServiceStatus;
   telegramStatus: ServiceStatus;
   databaseStatus: ServiceStatus;
+  loading?: boolean;
 }
 
 export function SystemStatus({ 
   whatsappStatus, 
   telegramStatus, 
-  databaseStatus 
+  databaseStatus,
+  loading = false
 }: SystemStatusProps) {
   return (
     <div className="px-3 py-2">
-      <div className="text-sm font-medium mb-2">Status do Sistema</div>
+      <div className="text-sm font-medium mb-2 flex items-center justify-between">
+        <span>Status do Sistema</span>
+        {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+      </div>
       
       {/* WhatsApp Status */}
       <div className="flex items-center justify-between mb-3">
