@@ -1,213 +1,167 @@
 
-import { format, addDays, subDays, isSameDay } from "date-fns";
+/**
+ * Messaging Cron Utility
+ * 
+ * This utility is responsible for scheduling and sending messages based on collection rules.
+ * It would typically be run on a server as a cron job, but for demonstration purposes,
+ * it can be triggered manually or simulated in the frontend.
+ */
 
-// Types for the messaging system
-export type MessageTemplate = {
-  id: string;
-  name: string;
-  reminderTemplate: string;
-  dueDateTemplate: string;
-  overdueTemplate: string;
-  confirmationTemplate: string;
-};
+import { 
+  messageHistoryApi, 
+  messagingSettingsApi,
+  createMessageFromTemplate,
+  messagingUtils
+} from '../api/endpoints';
 
-export type Invoice = {
-  id: string;
-  customerId: string;
-  customerName: string;
-  amount: number;
-  description: string;
-  dueDate: Date;
-  status: "pending" | "paid" | "overdue" | "cancelled";
-  paymentMethod: "mercadopago" | "asaas";
-  messageTemplateId: string;
-  lastMessageSentAt?: Date;
-};
-
-export type Customer = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address?: string;
-  notes?: string;
-  isActive: boolean;
-};
-
-export type CollectionRule = {
-  id: string;
-  name: string;
-  isActive: boolean;
-  reminderDaysBefore: number;
-  sendOnDueDate: boolean;
-  overdueDaysAfter: number[];
-  reminderTemplate: string;
-  dueDateTemplate: string;
-  overdueTemplate: string;
-  confirmationTemplate: string;
-};
-
-export interface MessagePayload {
-  to: string;
-  message: string;
-  invoiceId: string;
-  messageType: "reminder" | "dueDate" | "overdue" | "confirmation";
-}
-
-// Function to check which messages need to be sent
-export function checkPendingMessages(
-  invoices: Invoice[],
-  customers: Customer[],
-  collectionRules: CollectionRule[]
-): MessagePayload[] {
-  const today = new Date();
-  const pendingMessages: MessagePayload[] = [];
-
-  // Only process active invoices (pending or overdue)
-  const activeInvoices = invoices.filter(
-    (invoice) => invoice.status === "pending" || invoice.status === "overdue"
-  );
-
-  activeInvoices.forEach((invoice) => {
-    const customer = customers.find((c) => c.id === invoice.customerId);
-    
-    // Skip if customer not found or not active
-    if (!customer || !customer.isActive || !customer.phone) {
-      return;
-    }
-
-    const rule = collectionRules.find((r) => r.id === invoice.messageTemplateId);
-    
-    // Skip if rule not found or not active
-    if (!rule || !rule.isActive) {
-      return;
-    }
-
-    // Check for reminder (X days before due date)
-    if (rule.reminderDaysBefore > 0) {
-      const reminderDate = subDays(invoice.dueDate, rule.reminderDaysBefore);
-      if (isSameDay(today, reminderDate)) {
-        const message = formatMessage(rule.reminderTemplate, {
-          cliente: customer.name,
-          valor: formatCurrency(invoice.amount),
-          dias_para_vencer: rule.reminderDaysBefore.toString(),
-          link: `https://pay.example.com/${invoice.id}`
-        });
-
-        pendingMessages.push({
-          to: customer.phone,
-          message,
-          invoiceId: invoice.id,
-          messageType: "reminder"
-        });
+// Simulated function to run the cron job
+export const runMessagingCron = async () => {
+  try {
+    // In a real system, this would be an RPC call to a stored procedure
+    // that returns pending messages
+    const pendingMessages = [
+      {
+        invoice_id: '1',
+        customer_id: '1',
+        customer_name: 'João Silva',
+        customer_phone: '5511999999999',
+        message_type: 'reminder',
+        template_text: 'Olá {cliente}, sua fatura de {valor} vence em {dias_para_vencer} dias.',
+        payment_link: 'https://example.com/pay/123',
+        amount: 199.99,
+        days_to_due: 3,
+        days_overdue: null
+      },
+      {
+        invoice_id: '2',
+        customer_id: '2',
+        customer_name: 'Maria Oliveira',
+        customer_phone: '5511888888888',
+        message_type: 'overdue',
+        template_text: 'Olá {cliente}, sua fatura de {valor} está atrasada há {dias_atraso} dias. Link: {link}',
+        payment_link: 'https://example.com/pay/456',
+        amount: 350.50,
+        days_to_due: null,
+        days_overdue: 5
       }
-    }
+    ];
 
-    // Check for due date message
-    if (rule.sendOnDueDate && isSameDay(today, invoice.dueDate)) {
-      const message = formatMessage(rule.dueDateTemplate, {
-        cliente: customer.name,
-        valor: formatCurrency(invoice.amount),
-        link: `https://pay.example.com/${invoice.id}`
-      });
+    console.log(`Found ${pendingMessages.length} pending messages to send`);
 
-      pendingMessages.push({
-        to: customer.phone,
-        message,
-        invoiceId: invoice.id,
-        messageType: "dueDate"
-      });
-    }
+    // Get messaging settings
+    const whatsappSettings = await messagingSettingsApi.getByChannel('whatsapp');
+    const telegramSettings = await messagingSettingsApi.getByChannel('telegram');
 
-    // Check for overdue messages
-    if (today > invoice.dueDate && invoice.status === "overdue") {
-      const daysSinceOverdue = Math.floor(
-        (today.getTime() - invoice.dueDate.getTime()) / (1000 * 60 * 60 * 24)
+    // Process each pending message
+    for (const pendingMessage of pendingMessages) {
+      // Format the message with template variables
+      const messageText = createMessageFromTemplate(
+        pendingMessage.template_text,
+        {
+          customerName: pendingMessage.customer_name,
+          amount: pendingMessage.amount,
+          daysUntilDue: pendingMessage.days_to_due || undefined,
+          daysOverdue: pendingMessage.days_overdue || undefined,
+          paymentLink: pendingMessage.payment_link
+        }
       );
 
-      if (rule.overdueDaysAfter.includes(daysSinceOverdue)) {
-        const message = formatMessage(rule.overdueTemplate, {
-          cliente: customer.name,
-          valor: formatCurrency(invoice.amount),
-          dias_atraso: daysSinceOverdue.toString(),
-          link: `https://pay.example.com/${invoice.id}`
-        });
+      console.log(`Formatted message: ${messageText}`);
 
-        pendingMessages.push({
-          to: customer.phone,
-          message,
-          invoiceId: invoice.id,
-          messageType: "overdue"
-        });
+      // Determine which channel to use (in this example, always try WhatsApp first, then Telegram)
+      let sendResult = null;
+      let channel = '';
+      let error = null;
+
+      // Try WhatsApp if configured
+      if (whatsappSettings && whatsappSettings.is_active) {
+        try {
+          channel = 'whatsapp';
+          sendResult = await messagingUtils.sendWhatsAppMessage(
+            pendingMessage.customer_phone,
+            messageText
+          );
+          console.log('WhatsApp message sent successfully');
+        } catch (err) {
+          console.error('Error sending WhatsApp message:', err);
+          error = err instanceof Error ? err.message : 'Unknown error';
+          // Fall back to Telegram
+        }
       }
+
+      // Try Telegram if WhatsApp failed or is not configured
+      if (!sendResult && telegramSettings && telegramSettings.is_active) {
+        try {
+          channel = 'telegram';
+          // In a real system, you'd need to have the customer's Telegram chat ID
+          const chatId = telegramSettings.additional_config?.chat_id || '';
+          if (chatId) {
+            sendResult = await messagingUtils.sendTelegramMessage(
+              chatId,
+              messageText
+            );
+            console.log('Telegram message sent successfully');
+          } else {
+            throw new Error('No Telegram chat ID configured');
+          }
+        } catch (err) {
+          console.error('Error sending Telegram message:', err);
+          error = err instanceof Error ? err.message : 'Unknown error';
+        }
+      }
+
+      // Log the message attempt to message_history
+      await messageHistoryApi.create({
+        customer_id: pendingMessage.customer_id,
+        invoice_id: pendingMessage.invoice_id,
+        message_type: pendingMessage.message_type as any,
+        channel: channel as any,
+        content: messageText,
+        status: sendResult ? 'sent' : 'failed',
+        sent_at: sendResult ? new Date().toISOString() : undefined,
+        error_message: error || undefined
+      });
     }
-  });
 
-  return pendingMessages;
-}
-
-// Format message templates by replacing variables
-function formatMessage(template: string, variables: Record<string, string>): string {
-  let formattedMessage = template;
-  
-  Object.entries(variables).forEach(([key, value]) => {
-    formattedMessage = formattedMessage.replace(new RegExp(`{${key}}`, 'g'), value);
-  });
-  
-  return formattedMessage;
-}
-
-// Format currency as BRL
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(value);
-}
-
-// Example function to send WhatsApp messages
-export async function sendWhatsAppMessage(payload: MessagePayload): Promise<boolean> {
-  try {
-    // In a real implementation, this would call the WhatsApp API
-    console.log(`Sending WhatsApp message to ${payload.to}: ${payload.message}`);
-    
-    // This is a mock implementation - in a real app, you would make an API call here
-    return true;
+    return {
+      success: true,
+      messagesProcessed: pendingMessages.length
+    };
   } catch (error) {
-    console.error("Error sending WhatsApp message:", error);
-    return false;
+    console.error('Error running messaging cron:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
   }
-}
+};
 
-// Example function to send Telegram messages
-export async function sendTelegramMessage(payload: MessagePayload): Promise<boolean> {
+// Function to test messaging configuration
+export const testMessagingConfiguration = async (
+  channel: 'whatsapp' | 'telegram',
+  recipient: string,
+  message: string
+) => {
   try {
-    // In a real implementation, this would call the Telegram API
-    console.log(`Sending Telegram message to ${payload.to}: ${payload.message}`);
+    let result;
     
-    // This is a mock implementation - in a real app, you would make an API call here
-    return true;
+    if (channel === 'whatsapp') {
+      result = await messagingUtils.sendWhatsAppMessage(recipient, message);
+    } else if (channel === 'telegram') {
+      result = await messagingUtils.sendTelegramMessage(recipient, message);
+    } else {
+      throw new Error(`Unsupported channel: ${channel}`);
+    }
+    
+    return {
+      success: true,
+      result
+    };
   } catch (error) {
-    console.error("Error sending Telegram message:", error);
-    return false;
+    console.error(`Error testing ${channel} configuration:`, error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
   }
-}
-
-// The main function that would be called by a cron job
-export async function processDailyMessages(
-  invoices: Invoice[],
-  customers: Customer[],
-  collectionRules: CollectionRule[]
-): Promise<void> {
-  const pendingMessages = checkPendingMessages(invoices, customers, collectionRules);
-  
-  // Process each message
-  for (const message of pendingMessages) {
-    // You can choose which messaging platform to use based on your configuration
-    await sendWhatsAppMessage(message);
-    // Or use Telegram
-    // await sendTelegramMessage(message);
-  }
-  
-  console.log(`Processed ${pendingMessages.length} messages`);
-}
+};
