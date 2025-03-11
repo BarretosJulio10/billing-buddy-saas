@@ -12,19 +12,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from "@/components/ui/select";
-import { WhatsAppQRScanner } from "@/components/integrations/WhatsAppQRScanner";
-import { TelegramConnector } from "@/components/integrations/TelegramConnector";
-import { PaymentGatewayForm } from "@/components/integrations/PaymentGatewayForm";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Collections = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,62 +52,59 @@ const Collections = () => {
         </Sheet>
       </div>
 
-      <Tabs defaultValue="models">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="models">Modelos</TabsTrigger>
-          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-          <TabsTrigger value="telegram">Telegram</TabsTrigger>
-          <TabsTrigger value="payment">Formas de Pagamento</TabsTrigger>
-        </TabsList>
-        <TabsContent value="models">
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Modelos de Cobrança</CardTitle>
+          <CardDescription>
+            Gerencie os modelos e regras para envio automático de mensagens de cobrança
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Os modelos definem quando e como as mensagens serão enviadas aos clientes. Configure lembretes antes do vencimento, 
+            notificações no dia e cobranças após o vencimento.
+          </p>
           <CollectionRuleTable />
-        </TabsContent>
-        
-        <TabsContent value="whatsapp">
-          <div className="grid gap-6">
-            <WhatsAppQRScanner apiEndpoint="/api/whatsapp/connect" />
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Configuração Avançada</CardTitle>
-                <CardDescription>
-                  Configure opções adicionais para o envio de mensagens via WhatsApp
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">URL da API</label>
-                    <Input placeholder="https://sua-api-whatsapp.com/send" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Token de Autenticação</label>
-                    <Input type="password" placeholder="seu-token-secreto" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Número de Telefone</label>
-                    <Input placeholder="5511999999999" />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full">Salvar Configurações</Button>
-              </CardFooter>
-            </Card>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Instruções de Uso</CardTitle>
+          <CardDescription>Como utilizar a régua de cobrança</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="font-medium mb-2">Criando um modelo</h3>
+            <p className="text-sm text-muted-foreground">
+              Clique em "Novo Modelo" para criar uma nova régua de cobrança. Defina um nome, 
+              configure os dias de envio e personalize as mensagens.
+            </p>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="telegram">
-          <TelegramConnector />
-        </TabsContent>
-        
-        <TabsContent value="payment">
-          <div className="grid gap-6 md:grid-cols-2">
-            <PaymentGatewayForm gateway="mercadopago" />
-            <PaymentGatewayForm gateway="asaas" />
+          
+          <div>
+            <h3 className="font-medium mb-2">Variáveis disponíveis</h3>
+            <p className="text-sm text-muted-foreground">
+              Você pode usar as seguintes variáveis nas mensagens:
+            </p>
+            <ul className="list-disc pl-5 mt-2 text-sm text-muted-foreground">
+              <li>{'{cliente}'} - Nome do cliente</li>
+              <li>{'{valor}'} - Valor da fatura</li>
+              <li>{'{dias_para_vencer}'} - Dias até o vencimento</li>
+              <li>{'{dias_atraso}'} - Dias de atraso</li>
+              <li>{'{link}'} - Link de pagamento</li>
+            </ul>
           </div>
-        </TabsContent>
-      </Tabs>
+          
+          <div>
+            <h3 className="font-medium mb-2">Configurando integrações</h3>
+            <p className="text-sm text-muted-foreground">
+              Para que as mensagens sejam enviadas, configure as integrações de WhatsApp, Telegram e 
+              gateways de pagamento na página de Configurações.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
