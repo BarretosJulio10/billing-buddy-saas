@@ -30,33 +30,15 @@ export function useAuthActions() {
         return;
       }
 
-      // Simplified redirection logic to avoid deep type instantiation
-      let redirectPath = '/';
-      
-      // Get the user's organization role
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('organization_id')
+      // Simple query to check organization admin status
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .select('is_admin')
         .eq('email', email)
         .maybeSingle();
-      
-      if (userError) {
-        console.error('Error fetching user data:', userError);
-      } else if (userData?.organization_id) {
-        // Check if the user's organization is an admin organization
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .select('is_admin')
-          .eq('id', userData.organization_id)
-          .maybeSingle();
-        
-        if (orgError) {
-          console.error('Error fetching organization data:', orgError);
-        } else if (orgData?.is_admin) {
-          redirectPath = '/admin';
-        }
-      }
 
+      const redirectPath = orgData?.is_admin ? '/admin' : '/';
+      
       navigate(redirectPath);
 
       toast({
