@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -135,37 +136,50 @@ export default function AdminOrganizationDetail() {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Use simpler approach with count() function to avoid deep type instantiation
-      // Count customers
-      const { count: customersCount, error: customersError } = await supabase
+      // Avoid deep type instantiation by using simpler query techniques
+      
+      // For customers count
+      const { error: customersError } = await supabase
         .from('customers')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact' })
         .eq('organization_id', orgId)
-        .is('deleted_at', null);
+        .is('deleted_at', null)
+        .then(({ count, error }) => {
+          if (!error) {
+            setStats(prev => ({ ...prev, customers: count || 0 }));
+          }
+          return { error };
+        });
 
-      // Count invoices
-      const { count: invoicesCount, error: invoicesError } = await supabase
+      // For invoices count
+      const { error: invoicesError } = await supabase
         .from('invoices')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact' })
         .eq('organization_id', orgId)
-        .is('deleted_at', null);
+        .is('deleted_at', null)
+        .then(({ count, error }) => {
+          if (!error) {
+            setStats(prev => ({ ...prev, invoices: count || 0 }));
+          }
+          return { error };
+        });
 
-      // Count collection rules
-      const { count: collectionsCount, error: collectionsError } = await supabase
+      // For collection rules count
+      const { error: collectionsError } = await supabase
         .from('collection_rules')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact' })
         .eq('organization_id', orgId)
-        .is('deleted_at', null);
+        .is('deleted_at', null)
+        .then(({ count, error }) => {
+          if (!error) {
+            setStats(prev => ({ ...prev, collections: count || 0 }));
+          }
+          return { error };
+        });
 
       if (customersError) console.error('Error counting customers:', customersError);
       if (invoicesError) console.error('Error counting invoices:', invoicesError);
       if (collectionsError) console.error('Error counting collections:', collectionsError);
-
-      setStats({
-        customers: customersCount || 0,
-        invoices: invoicesCount || 0,
-        collections: collectionsCount || 0
-      });
     } catch (error) {
       console.error('Error fetching statistics:', error);
       setStats({
