@@ -75,9 +75,14 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
+      // Define fetchCount with explicit typing to avoid 'never' type issues
       async function fetchCount(functionName: RpcFunction): Promise<number> {
         const params: RpcParams = { org_id: orgId };
-        const { data, error } = await supabase.rpc(functionName, params);
+        // Use explicit type assertion for RPC call parameters
+        const { data, error } = await supabase.rpc(
+          functionName, 
+          params as Record<string, unknown>
+        );
         if (error) throw error;
         return typeof data === 'number' ? data : 0;
       }

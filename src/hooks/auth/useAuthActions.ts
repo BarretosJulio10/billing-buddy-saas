@@ -1,16 +1,7 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-
-interface UserData {
-  organization_id?: string;
-}
-
-interface OrgData {
-  is_admin?: boolean;
-}
 
 export function useAuthActions() {
   const navigate = useNavigate();
@@ -36,21 +27,17 @@ export function useAuthActions() {
       if (isAdminEmail) {
         navigate('/admin');
       } else {
-        const { data, error: userDataError } = await supabase
+        const { data: userData } = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
           .maybeSingle();
         
-        if (userDataError) {
-          console.error('Error fetching user data:', userDataError);
-        }
-
-        if (data?.organization_id) {
+        if (userData?.organization_id) {
           const { data: orgData } = await supabase
             .from('organizations')
             .select('is_admin')
-            .eq('id', data.organization_id)
+            .eq('id', userData.organization_id)
             .single();
           
           if (orgData?.is_admin) {
