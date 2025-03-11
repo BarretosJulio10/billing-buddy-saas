@@ -67,10 +67,10 @@ const databaseStatus = {
 
 export function AppSidebar() {
   const location = useLocation();
-  const { toggleSidebar } = useSidebar();
+  const { isOpen, toggleSidebar } = useSidebar();
   
   return (
-    <Sidebar>
+    <Sidebar className={isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}>
       <SidebarContent>
         <SidebarGroup>
           <div className="flex items-center justify-between px-3 py-2">
