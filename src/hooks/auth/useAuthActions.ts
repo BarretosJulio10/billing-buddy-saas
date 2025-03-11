@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -30,28 +31,29 @@ export function useAuthActions() {
         return;
       }
 
-      // Use a simpler approach to determine redirect path
+      // To avoid deep type instantiation, simplify the logic with separate queries
       let redirectPath = '/';
       
-      // First query - get the user's organization ID
-      const userResult = await supabase
+      // First get the user's organization ID
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('organization_id')
         .eq('email', email)
         .maybeSingle();
-        
-      const orgId = userResult.data?.organization_id;
       
-      // If we have an organization ID, check if the user is an admin
-      if (orgId) {
-        const orgResult = await supabase
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+      } else if (userData?.organization_id) {
+        // Then check if the organization is admin
+        const { data: orgData, error: orgError } = await supabase
           .from('organizations')
           .select('is_admin')
-          .eq('id', orgId)
+          .eq('id', userData.organization_id)
           .maybeSingle();
-          
-        // If this organization has is_admin flag set, redirect to admin
-        if (orgResult.data?.is_admin) {
+        
+        if (orgError) {
+          console.error('Error fetching organization data:', orgError);
+        } else if (orgData?.is_admin) {
           redirectPath = '/admin';
         }
       }

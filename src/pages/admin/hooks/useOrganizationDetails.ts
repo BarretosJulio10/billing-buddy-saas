@@ -83,14 +83,15 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      // Fix type issues by using a type assertion for the parameters object
-      type RpcParams = {
+      // Fix the rpc call by providing the correct generic type arguments
+      // For rpc calls, we need both the return type and parameters type
+      interface RpcParams {
         org_id: string;
-      };
+      }
       
-      const { data, error } = await supabase.rpc<number>(
+      const { data, error } = await supabase.rpc<number, RpcParams>(
         functionName, 
-        { org_id: orgId } as RpcParams
+        { org_id: orgId }
       );
       
       if (error) throw error;
