@@ -13,6 +13,7 @@ import {
   SidebarFooter,
   SidebarSeparator,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 const menuItems = [
@@ -66,6 +67,7 @@ const databaseStatus = {
 
 export function AppSidebar() {
   const location = useLocation();
+  const { toggleSidebar } = useSidebar();
   
   return (
     <Sidebar>
@@ -73,7 +75,13 @@ export function AppSidebar() {
         <SidebarGroup>
           <div className="flex items-center justify-between px-3 py-2">
             <SidebarGroupLabel>PagouPix</SidebarGroupLabel>
-            <SidebarTrigger className="md:hidden flex">
+            <SidebarTrigger 
+              className="md:hidden flex" 
+              onClick={(e) => {
+                e.preventDefault();
+                toggleSidebar();
+              }}
+            >
               <Menu className="h-5 w-5" />
             </SidebarTrigger>
           </div>
