@@ -20,7 +20,7 @@ export function useAuthActions() {
       });
       
       if (error) throw error;
-      
+
       // Special case for admin user
       if (email === 'julioquintanilha@hotmail.com') {
         navigate('/admin');
@@ -31,35 +31,35 @@ export function useAuthActions() {
         return;
       }
 
-      // Breaking up the chain to simplify types and avoid deep instantiation
-      let redirectPath = '/';
-      
-      // First query - get user
-      const userResponse = await supabase
+      // Get user organization role
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('organization_id')
         .eq('email', email)
-        .maybeSingle();
-      
-      if (userResponse.error) {
-        console.error('Error fetching user data:', userResponse.error);
-      } else if (userResponse.data?.organization_id) {
-        // Second query - get organization
-        const orgResponse = await supabase
+        .single();
+
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+        navigate('/');
+        return;
+      }
+
+      if (userData?.organization_id) {
+        const { data: orgData, error: orgError } = await supabase
           .from('organizations')
           .select('is_admin')
-          .eq('id', userResponse.data.organization_id)
-          .maybeSingle();
-        
-        if (orgResponse.error) {
-          console.error('Error fetching organization data:', orgResponse.error);
-        } else if (orgResponse.data?.is_admin) {
-          redirectPath = '/admin';
+          .eq('id', userData.organization_id)
+          .single();
+
+        if (!orgError && orgData?.is_admin) {
+          navigate('/admin');
+        } else {
+          navigate('/');
         }
+      } else {
+        navigate('/');
       }
-      
-      navigate(redirectPath);
-      
+
       toast({
         title: "Login successful",
         description: "Welcome back!",

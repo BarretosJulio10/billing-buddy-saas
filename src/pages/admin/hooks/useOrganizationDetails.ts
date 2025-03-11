@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
@@ -10,9 +9,8 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define a type for the RPC parameters to avoid 'never' type errors
-interface OrgIdParam {
-  org_id: string;
+interface StatResponse {
+  count: number;
 }
 
 export function useOrganizationDetails(id: string | undefined) {
@@ -85,23 +83,13 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: string, orgId: string): Promise<number> => {
     try {
-      // Use our defined parameter type to fix the 'never' type error
-      const params: OrgIdParam = { org_id: orgId };
-      
-      const { data, error } = await supabase.rpc(functionName, params);
+      const { data, error } = await supabase.rpc<StatResponse>(functionName, {
+        org_id: orgId
+      });
       
       if (error) throw error;
       
-      if (data && typeof data === 'number') {
-        return data;
-      }
-      
-      // Fallback for object response
-      if (data && typeof data === 'object' && 'count' in data) {
-        return Number((data as { count: number }).count) || 0;
-      }
-      
-      return 0;
+      return data?.count || 0;
     } catch (error) {
       console.error(`Error in ${functionName}:`, error);
       return 0;
