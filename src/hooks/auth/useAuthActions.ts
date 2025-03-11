@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -35,8 +34,8 @@ export function useAuthActions() {
       let redirectPath = '/';
       
       try {
-        // First get the user's organization ID
-        const { data: userData, error: userError } = await supabase
+        // Use a simpler approach to query user data
+        const { data: users, error: userError } = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
@@ -45,12 +44,12 @@ export function useAuthActions() {
         if (userError) {
           console.error('Error fetching user:', userError);
         }
-        else if (userData && userData.length > 0) {
-          const orgId = userData[0].organization_id;
+        else if (users && users.length > 0) {
+          const orgId = users[0].organization_id;
           
           if (orgId) {
-            // Then check if the organization is an admin organization
-            const { data: orgData, error: orgError } = await supabase
+            // Simplify org query to avoid type recursion
+            const { data: orgs, error: orgError } = await supabase
               .from('organizations')
               .select('is_admin')
               .eq('id', orgId)
@@ -59,11 +58,8 @@ export function useAuthActions() {
             if (orgError) {
               console.error('Error fetching organization:', orgError);
             }
-            else if (orgData && orgData.length > 0) {
-              // If the organization is an admin organization, redirect to admin page
-              if (orgData[0].is_admin) {
-                redirectPath = '/admin';
-              }
+            else if (orgs && orgs.length > 0 && orgs[0].is_admin) {
+              redirectPath = '/admin';
             }
           }
         }

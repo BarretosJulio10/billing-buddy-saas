@@ -10,9 +10,6 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define proper types for RPC functions
-type RpcFunction = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
-
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -72,12 +69,14 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Use any for the params type since we're just passing a simple object
-      async function fetchCount(functionName: RpcFunction): Promise<number> {
-        // Use type assertion to bypass TypeScript's strict checking
+      // Define a type-safe approach for calling RPC functions
+      async function fetchCount(functionName: string): Promise<number> {
+        // Use explicit parameter typing to avoid TypeScript errors
+        const params: Record<string, any> = { org_id: orgId };
+        
         const { data, error } = await supabase.rpc(
-          functionName, 
-          { org_id: orgId } as any
+          functionName as any, 
+          params
         );
         
         if (error) throw error;
