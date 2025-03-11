@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,14 +77,31 @@ export default function AdminOrganizationDetail() {
 
   const fetchStats = async (orgId: string) => {
     try {
-      const customersCount = await supabase.rpc('count_customers_by_org', { org_id: orgId }) as { data: number };
-      const invoicesCount = await supabase.rpc('count_invoices_by_org', { org_id: orgId }) as { data: number };
-      const collectionsCount = await supabase.rpc('count_collections_by_org', { org_id: orgId }) as { data: number };
+      // Fix type issues by using the correct type annotations for our RPC calls
+      // We need to use any here because the Supabase TypeScript types don't know about our custom RPCs
+      const { data: customersCount, error: customersError } = await supabase.rpc(
+        'count_customers_by_org', 
+        { org_id: orgId }
+      );
+      
+      const { data: invoicesCount, error: invoicesError } = await supabase.rpc(
+        'count_invoices_by_org', 
+        { org_id: orgId }
+      );
+      
+      const { data: collectionsCount, error: collectionsError } = await supabase.rpc(
+        'count_collections_by_org', 
+        { org_id: orgId }
+      );
+      
+      if (customersError) console.error('Error counting customers:', customersError);
+      if (invoicesError) console.error('Error counting invoices:', invoicesError);
+      if (collectionsError) console.error('Error counting collections:', collectionsError);
       
       setStats({
-        customers: customersCount.data || 0,
-        invoices: invoicesCount.data || 0,
-        collections: collectionsCount.data || 0
+        customers: customersCount || 0,
+        invoices: invoicesCount || 0,
+        collections: collectionsCount || 0
       });
       
     } catch (error) {
