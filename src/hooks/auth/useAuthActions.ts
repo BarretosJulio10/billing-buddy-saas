@@ -1,7 +1,15 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+
+// Define simple interface for user data to avoid complex type instantiation
+interface SimpleUserData {
+  organizations?: {
+    is_admin?: boolean;
+  } | null;
+}
 
 export function useAuthActions() {
   const navigate = useNavigate();
@@ -29,7 +37,7 @@ export function useAuthActions() {
         console.log('Admin user identified, redirecting to admin dashboard');
         navigate('/admin');
       } else {
-        const { data: userData, error: userDataError } = await supabase
+        const { data, error: userDataError } = await supabase
           .from('users')
           .select('*, organizations:organization_id(*)')
           .eq('email', email)
@@ -39,6 +47,8 @@ export function useAuthActions() {
           console.error('Error fetching user data:', userDataError);
         }
         
+        // Use the defined interface to avoid deep type instantiation
+        const userData = data as SimpleUserData | null;
         const isOrgAdmin = userData?.organizations?.is_admin || false;
         
         if (isOrgAdmin) {

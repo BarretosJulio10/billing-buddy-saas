@@ -69,13 +69,12 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Use specific type for parameters but with type assertion to avoid type errors
+      // Cast parameters object with type assertion to avoid TypeScript errors
       const params = { org_id: orgId };
       
-      // Apply type assertions to resolve parameter errors
-      const customersPromise = supabase.rpc('count_customers_by_org', params);
-      const invoicesPromise = supabase.rpc('count_invoices_by_org', params);
-      const collectionsPromise = supabase.rpc('count_collections_by_org', params);
+      const customersPromise = supabase.rpc('count_customers_by_org', params as any);
+      const invoicesPromise = supabase.rpc('count_invoices_by_org', params as any);
+      const collectionsPromise = supabase.rpc('count_collections_by_org', params as any);
       
       const [
         customersResponse, 
