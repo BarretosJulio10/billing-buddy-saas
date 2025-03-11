@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -23,42 +22,50 @@ export function useAuthActions() {
       
       if (email === 'julioquintanilha@hotmail.com') {
         navigate('/admin');
+        toast({
+          title: "Login successful",
+          description: "Welcome back, Admin!",
+        });
         return;
       }
 
-      // Completely refactor the approach to avoid deep type nesting
       let redirectPath = '/';
       
       try {
-        // Query for organization information directly
-        const { data: users, error: userError } = await supabase
+        const userQuery = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
           .limit(1);
           
-        if (userError) {
-          console.error('Error fetching user:', userError);
-        } else if (users && users.length > 0 && users[0].organization_id) {
-          const orgId = users[0].organization_id;
+        if (userQuery.error) {
+          console.error('Error fetching user:', userQuery.error);
+        } 
+        else if (userQuery.data && userQuery.data.length > 0) {
+          const orgId = userQuery.data[0].organization_id;
           
-          const { data: orgs, error: orgError } = await supabase
-            .from('organizations')
-            .select('is_admin')
-            .eq('id', orgId)
-            .limit(1);
-            
-          if (orgError) {
-            console.error('Error fetching organization:', orgError);
-          } else if (orgs && orgs.length > 0 && orgs[0].is_admin) {
-            redirectPath = '/admin';
+          if (orgId) {
+            const orgQuery = await supabase
+              .from('organizations')
+              .select('is_admin')
+              .eq('id', orgId)
+              .limit(1);
+              
+            if (orgQuery.error) {
+              console.error('Error fetching organization:', orgQuery.error);
+            } 
+            else if (orgQuery.data && orgQuery.data.length > 0) {
+              const isAdmin = orgQuery.data[0].is_admin;
+              if (isAdmin) {
+                redirectPath = '/admin';
+              }
+            }
           }
         }
       } catch (err) {
         console.error('Error during redirection logic:', err);
       }
       
-      // Navigate based on the determined path
       navigate(redirectPath);
       
       toast({
@@ -166,3 +173,4 @@ export function useAuthActions() {
     loading,
   };
 }
+
