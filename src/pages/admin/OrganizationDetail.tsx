@@ -83,19 +83,19 @@ export default function AdminOrganizationDetail() {
       }
 
       // Make the RPC calls with proper type annotations
-      const { data: customersCount, error: customersError } = await supabase.rpc<number>(
+      const { data: customersCount, error: customersError } = await supabase.rpc<number, RpcParams>(
         'count_customers_by_org', 
-        { org_id: orgId } as RpcParams
+        { org_id: orgId }
       );
       
-      const { data: invoicesCount, error: invoicesError } = await supabase.rpc<number>(
+      const { data: invoicesCount, error: invoicesError } = await supabase.rpc<number, RpcParams>(
         'count_invoices_by_org', 
-        { org_id: orgId } as RpcParams
+        { org_id: orgId }
       );
       
-      const { data: collectionsCount, error: collectionsError } = await supabase.rpc<number>(
+      const { data: collectionsCount, error: collectionsError } = await supabase.rpc<number, RpcParams>(
         'count_collections_by_org', 
-        { org_id: orgId } as RpcParams
+        { org_id: orgId }
       );
       
       if (customersError) console.error('Error counting customers:', customersError);
