@@ -35,33 +35,34 @@ export function useAuthActions() {
       let redirectPath = '/';
       
       try {
-        // Break this into smaller steps with explicit typing to avoid deep instantiation
-        // Step 1: Get the user's organization ID
-        const userResult = await supabase
+        // Query user data without nesting to avoid excessive type instantiation
+        const userQuery = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
           .limit(1);
           
-        if (userResult.error) {
-          console.error('Error fetching user:', userResult.error);
+        if (userQuery.error) {
+          console.error('Error fetching user:', userQuery.error);
         } 
-        else if (userResult.data && userResult.data.length > 0) {
-          const orgId = userResult.data[0].organization_id;
+        else if (userQuery.data && userQuery.data.length > 0) {
+          const orgId = userQuery.data[0].organization_id;
           
           if (orgId) {
-            // Step 2: Check if the organization is an admin organization
-            const orgResult = await supabase
+            // Separate query for organization
+            const orgQuery = await supabase
               .from('organizations')
               .select('is_admin')
               .eq('id', orgId)
               .limit(1);
               
-            if (orgResult.error) {
-              console.error('Error fetching organization:', orgResult.error);
+            if (orgQuery.error) {
+              console.error('Error fetching organization:', orgQuery.error);
             }
-            else if (orgResult.data && orgResult.data.length > 0 && orgResult.data[0].is_admin) {
-              redirectPath = '/admin';
+            else if (orgQuery.data && orgQuery.data.length > 0) {
+              // Check admin status
+              const isAdmin = orgQuery.data[0].is_admin;
+              redirectPath = isAdmin ? '/admin' : '/';
             }
           }
         }

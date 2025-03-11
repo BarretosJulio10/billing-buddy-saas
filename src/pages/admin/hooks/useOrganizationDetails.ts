@@ -69,16 +69,13 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define a custom type for our function parameter to avoid type issues
-      type RpcParams = { org_id: string };
+      // Use explicit typing for RPC functions to satisfy TypeScript
+      type CountFunction = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
       
-      async function fetchCount(functionName: string): Promise<number> {
-        const params: RpcParams = { org_id: orgId };
-        
-        // Use type assertion to tell TypeScript that this function exists
+      async function fetchCount(functionName: CountFunction): Promise<number> {
         const { data, error } = await supabase.rpc(
           functionName, 
-          params
+          { org_id: orgId }
         );
         
         if (error) throw error;
