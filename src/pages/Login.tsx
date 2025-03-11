@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -33,8 +34,7 @@ export default function Login() {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [adminSetupTriggered, setAdminSetupTriggered] = useState(false);
-  const [adminSetupComplete, setAdminSetupComplete] = useState(false);
+  const [adminOrganizationId, setAdminOrganizationId] = useState<string | null>(null);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -53,18 +53,40 @@ export default function Login() {
     },
   });
 
+  // Fetch the admin organization ID on component mount
+  useEffect(() => {
+    async function fetchAdminOrganization() {
+      try {
+        const { data, error } = await supabase
+          .from('organizations')
+          .select('id')
+          .eq('email', 'julioquintanilha@hotmail.com')
+          .eq('is_admin', true)
+          .maybeSingle();
+          
+        if (error) {
+          console.error('Error fetching admin organization:', error);
+          return;
+        }
+        
+        if (data) {
+          console.log('Admin organization found:', data.id);
+          setAdminOrganizationId(data.id);
+        } else {
+          console.log('Admin organization not found');
+        }
+      } catch (error) {
+        console.error('Failed to fetch admin organization:', error);
+      }
+    }
+    
+    fetchAdminOrganization();
+  }, []);
+
   const handleLogin = async (data: z.infer<typeof loginSchema>) => {
     try {
       setIsLoading(true);
       
-      // Special case for admin login
-      if (data.email === 'julioquintanilha@hotmail.com') {
-        console.log('Attempting admin login...');
-        if (!adminSetupComplete) {
-          await createAdminUserIfNeeded();
-        }
-      }
-
       // Attempt sign in
       await signIn(data.email, data.password);
     } catch (error: any) {
@@ -82,9 +104,50 @@ export default function Login() {
   const handleRegister = async (data: z.infer<typeof registerSchema>) => {
     try {
       setIsLoading(true);
-      await signUp(data.email, data.password, data.organizationName);
-      // Reset form após envio
+      
+      // Special case for admin registration
+      if (data.email === 'julioquintanilha@hotmail.com' && adminOrganizationId) {
+        console.log('Attempting admin registration...');
+        
+        // Create auth user
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+        });
+        
+        if (authError) throw authError;
+        
+        if (authData.user) {
+          // Link to existing admin organization
+          const { error: userError } = await supabase
+            .from('users')
+            .insert({
+              id: authData.user.id,
+              organization_id: adminOrganizationId,
+              role: 'admin',
+              first_name: 'Admin',
+              last_name: 'System',
+            });
+            
+          if (userError) throw userError;
+          
+          toast({
+            title: "Conta de administrador criada",
+            description: "Você pode agora fazer login como administrador.",
+          });
+          
+          // Reset form
+          registerForm.reset();
+          return;
+        }
+      } else {
+        // Regular user registration
+        await signUp(data.email, data.password, data.organizationName);
+      }
+      
+      // Reset form
       registerForm.reset();
+      
       toast({
         title: "Conta criada com sucesso",
         description: "Você já pode fazer login no sistema.",
@@ -100,50 +163,6 @@ export default function Login() {
       setIsLoading(false);
     }
   };
-
-  // Function to create admin user if it doesn't exist
-  const createAdminUserIfNeeded = async () => {
-    try {
-      setIsLoading(true);
-      setAdminSetupTriggered(true);
-      
-      console.log('Setting up admin user...');
-      const { data, error } = await supabase.functions.invoke('create-admin-user');
-      
-      if (error) {
-        console.error('Error creating admin user:', error);
-        toast({
-          title: "Erro ao configurar usuário admin",
-          description: error.message || "Não foi possível configurar a conta de administrador",
-          variant: "destructive",
-        });
-        return false;
-      } else {
-        console.log('Admin user setup completed:', data);
-        toast({
-          title: "Usuário admin configurado",
-          description: "A conta de administrador foi configurada com sucesso",
-        });
-        setAdminSetupComplete(true);
-        return true;
-      }
-    } catch (error: any) {
-      console.error('Failed to setup admin user:', error);
-      toast({
-        title: "Erro ao configurar usuário admin",
-        description: "Ocorreu um erro ao configurar a conta de administrador",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Force admin user creation on component mount
-  useEffect(() => {
-    createAdminUserIfNeeded();
-  }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
