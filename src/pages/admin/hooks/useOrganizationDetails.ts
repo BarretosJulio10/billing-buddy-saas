@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
@@ -10,16 +9,8 @@ interface OrganizationStats {
   collections: number;
 }
 
-// Define a more proper typing for RPC function parameters and responses
-interface RpcParams {
-  org_id: string;
-}
-
-// Define an interface for the RPC response
-interface RpcResponse {
-  data: number | null;
-  error: any;
-}
+// Define proper types for RPC functions
+type RpcFunction = 'count_customers_by_org' | 'count_invoices_by_org' | 'count_collections_by_org';
 
 export function useOrganizationDetails(id: string | undefined) {
   const { toast } = useToast();
@@ -80,23 +71,22 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define the parameters object
-      const params: RpcParams = { org_id: orgId };
-      
-      // Call RPC functions with proper type annotations
-      // Use any to bypass TypeScript constraints, then properly type the responses
-      const { data: customersData, error: customersError } = await supabase.rpc('count_customers_by_org', params) as RpcResponse;
-      const { data: invoicesData, error: invoicesError } = await supabase.rpc('count_invoices_by_org', params) as RpcResponse;
-      const { data: collectionsData, error: collectionsError } = await supabase.rpc('count_collections_by_org', params) as RpcResponse;
-      
-      if (customersError) throw customersError;
-      if (invoicesError) throw invoicesError;
-      if (collectionsError) throw collectionsError;
+      async function fetchCount(functionName: RpcFunction) {
+        const { data, error } = await supabase.rpc(functionName, { org_id: orgId });
+        if (error) throw error;
+        return data as number;
+      }
+
+      const [customers, invoices, collections] = await Promise.all([
+        fetchCount('count_customers_by_org'),
+        fetchCount('count_invoices_by_org'),
+        fetchCount('count_collections_by_org')
+      ]);
       
       setStats({
-        customers: customersData || 0,
-        invoices: invoicesData || 0,
-        collections: collectionsData || 0
+        customers: customers || 0,
+        invoices: invoices || 0,
+        collections: collections || 0
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);

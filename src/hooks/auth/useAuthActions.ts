@@ -3,22 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-// Simple interface without nested types to avoid excessive type instantiation
-interface UserData {
-  email?: string;
-  isAdmin?: boolean;
-  organizationId?: string;
+// Simple interface for organization data to avoid deep type instantiation
+interface OrganizationData {
+  id: string;
+  is_admin: boolean;
 }
 
-// Define a clear return type for the hook
-interface AuthActionsReturn {
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, orgName: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  loading: boolean;
-}
-
-export function useAuthActions(): AuthActionsReturn {
+export function useAuthActions() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -34,30 +25,31 @@ export function useAuthActions(): AuthActionsReturn {
       });
       
       if (error) {
-        console.error('Sign in error:', error);
         throw error;
       }
       
       const isAdminEmail = email === 'julioquintanilha@hotmail.com';
       
       if (isAdminEmail) {
-        console.log('Admin user identified, redirecting to admin dashboard');
         navigate('/admin');
       } else {
         const { data, error: userDataError } = await supabase
           .from('users')
-          .select('*, organizations:organization_id(*)')
+          .select('organization_id')
           .eq('email', email)
           .maybeSingle();
         
-        if (userDataError && userDataError.code !== 'PGRST116') {
+        if (userDataError) {
           console.error('Error fetching user data:', userDataError);
         }
+
+        const { data: orgData } = await supabase
+          .from('organizations')
+          .select('is_admin')
+          .eq('id', data?.organization_id)
+          .single();
         
-        // Using a simpler approach to avoid complex type nesting
-        const isOrgAdmin = data?.organizations?.is_admin || false;
-        
-        if (isOrgAdmin) {
+        if (orgData?.is_admin) {
           navigate('/admin');
         } else {
           navigate('/');
