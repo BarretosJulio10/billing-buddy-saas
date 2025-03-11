@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Organization } from "@/types/organization";
@@ -82,7 +83,8 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchSingleStat = async (functionName: FunctionName, orgId: string): Promise<number> => {
     try {
-      const { data, error } = await supabase.rpc(functionName, { org_id: orgId });
+      // Cast the RPC call to explicitly define the expected return type
+      const { data, error } = await supabase.rpc<number>(functionName, { org_id: orgId });
       
       if (error) throw error;
       
