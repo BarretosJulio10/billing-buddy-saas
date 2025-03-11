@@ -34,33 +34,36 @@ export function useAuthActions() {
       // Default redirect path
       let redirectPath = '/';
       
-      // Fetch user data in a non-nested way to avoid deep type instantiation
-      const userResult = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('email', email)
-        .maybeSingle();
-      
-      // Handle user fetch result separately
-      if (userResult.error) {
-        console.error('Error fetching user:', userResult.error);
-      } 
-      else if (userResult.data && userResult.data.organization_id) {
-        // If we have an organization ID, fetch organization data
-        const orgId = userResult.data.organization_id;
-        const orgResult = await supabase
-          .from('organizations')
-          .select('is_admin')
-          .eq('id', orgId)
+      try {
+        // Fetch user data without nesting queries
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('organization_id')
+          .eq('email', email)
           .maybeSingle();
         
-        // Handle organization fetch result
-        if (orgResult.error) {
-          console.error('Error fetching organization:', orgResult.error);
+        if (userError) {
+          console.error('Error fetching user:', userError);
+        } 
+        else if (userData && userData.organization_id) {
+          // If organization ID exists, fetch organization in a separate query
+          const orgId = userData.organization_id;
+          
+          const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
+            .select('is_admin')
+            .eq('id', orgId)
+            .maybeSingle();
+            
+          if (orgError) {
+            console.error('Error fetching organization:', orgError);
+          }
+          else if (orgData && orgData.is_admin) {
+            redirectPath = '/admin';
+          }
         }
-        else if (orgResult.data && orgResult.data.is_admin) {
-          redirectPath = '/admin';
-        }
+      } catch (queryError) {
+        console.error('Error in data queries:', queryError);
       }
       
       // Navigate based on the determined path
