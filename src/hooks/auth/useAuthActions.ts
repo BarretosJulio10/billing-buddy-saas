@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -34,31 +35,32 @@ export function useAuthActions() {
       let redirectPath = '/';
       
       try {
-        // Use a simpler approach to query user data
-        const { data: users, error: userError } = await supabase
+        // Break this into smaller steps with explicit typing to avoid deep instantiation
+        // Step 1: Get the user's organization ID
+        const userResult = await supabase
           .from('users')
           .select('organization_id')
           .eq('email', email)
           .limit(1);
-        
-        if (userError) {
-          console.error('Error fetching user:', userError);
-        }
-        else if (users && users.length > 0) {
-          const orgId = users[0].organization_id;
+          
+        if (userResult.error) {
+          console.error('Error fetching user:', userResult.error);
+        } 
+        else if (userResult.data && userResult.data.length > 0) {
+          const orgId = userResult.data[0].organization_id;
           
           if (orgId) {
-            // Simplify org query to avoid type recursion
-            const { data: orgs, error: orgError } = await supabase
+            // Step 2: Check if the organization is an admin organization
+            const orgResult = await supabase
               .from('organizations')
               .select('is_admin')
               .eq('id', orgId)
               .limit(1);
-            
-            if (orgError) {
-              console.error('Error fetching organization:', orgError);
+              
+            if (orgResult.error) {
+              console.error('Error fetching organization:', orgResult.error);
             }
-            else if (orgs && orgs.length > 0 && orgs[0].is_admin) {
+            else if (orgResult.data && orgResult.data.length > 0 && orgResult.data[0].is_admin) {
               redirectPath = '/admin';
             }
           }

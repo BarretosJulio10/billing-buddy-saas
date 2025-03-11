@@ -69,13 +69,15 @@ export function useOrganizationDetails(id: string | undefined) {
 
   const fetchStats = async (orgId: string) => {
     try {
-      // Define a type-safe approach for calling RPC functions
+      // Define a custom type for our function parameter to avoid type issues
+      type RpcParams = { org_id: string };
+      
       async function fetchCount(functionName: string): Promise<number> {
-        // Use explicit parameter typing to avoid TypeScript errors
-        const params: Record<string, any> = { org_id: orgId };
+        const params: RpcParams = { org_id: orgId };
         
+        // Use type assertion to tell TypeScript that this function exists
         const { data, error } = await supabase.rpc(
-          functionName as any, 
+          functionName, 
           params
         );
         
