@@ -23,8 +23,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   const { isBlocked, subscriptionExpiringSoon } = useSubscriptionStatus(organization);
 
-  // Explicitly type the context value to avoid circular references
-  const contextValue: AuthContextType = {
+  // Define the context value without using the AuthContextType directly here
+  const contextValue = {
     session,
     user,
     appUser,

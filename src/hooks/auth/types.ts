@@ -14,5 +14,11 @@ export interface AuthContextType {
   isAdmin: boolean;
   isBlocked: boolean;
   subscriptionExpiringSoon: boolean;
-  refetchUserData: () => Promise<void>;
+  refetchUserData: () => Promise<{
+    appUser: AppUser | null;
+    organization: Organization | null;
+    isAdmin: boolean;
+    isBlocked: boolean;
+    subscriptionExpiringSoon: boolean;
+  } | null>;
 }

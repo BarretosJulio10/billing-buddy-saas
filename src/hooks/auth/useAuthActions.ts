@@ -1,9 +1,7 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchUserData } from './authUtils';
 
 export function useAuthActions() {
   const navigate = useNavigate();
