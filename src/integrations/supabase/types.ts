@@ -9,13 +9,580 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      collection_rules: {
+        Row: {
+          confirmation_template: string
+          created_at: string | null
+          deleted_at: string | null
+          due_date_template: string
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string | null
+          overdue_days_after: number[]
+          overdue_template: string
+          reminder_days_before: number
+          reminder_template: string
+          send_on_due_date: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          confirmation_template: string
+          created_at?: string | null
+          deleted_at?: string | null
+          due_date_template: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id?: string | null
+          overdue_days_after: number[]
+          overdue_template: string
+          reminder_days_before: number
+          reminder_template: string
+          send_on_due_date?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          confirmation_template?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          due_date_template?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string | null
+          overdue_days_after?: number[]
+          overdue_template?: string
+          reminder_days_before?: number
+          reminder_template?: string
+          send_on_due_date?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_collection_rules_organization"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          city: string | null
+          collection_rule_id: string | null
+          created_at: string | null
+          deleted_at: string | null
+          document: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          organization_id: string | null
+          phone: string
+          state: string | null
+          updated_at: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          collection_rule_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          document?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          organization_id?: string | null
+          phone: string
+          state?: string | null
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          collection_rule_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          document?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string
+          state?: string | null
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_customers_collection_rule"
+            columns: ["collection_rule_id"]
+            isOneToOne: false
+            referencedRelation: "collection_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_customers_organization"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount: number
+          collection_rule_id: string | null
+          created_at: string | null
+          customer_id: string
+          deleted_at: string | null
+          description: string
+          due_date: string
+          id: string
+          organization_id: string | null
+          paid_at: string | null
+          payment_amount: number | null
+          payment_gateway: string | null
+          payment_gateway_id: string | null
+          payment_link: string | null
+          payment_method: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          collection_rule_id?: string | null
+          created_at?: string | null
+          customer_id: string
+          deleted_at?: string | null
+          description: string
+          due_date: string
+          id?: string
+          organization_id?: string | null
+          paid_at?: string | null
+          payment_amount?: number | null
+          payment_gateway?: string | null
+          payment_gateway_id?: string | null
+          payment_link?: string | null
+          payment_method?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          collection_rule_id?: string | null
+          created_at?: string | null
+          customer_id?: string
+          deleted_at?: string | null
+          description?: string
+          due_date?: string
+          id?: string
+          organization_id?: string | null
+          paid_at?: string | null
+          payment_amount?: number | null
+          payment_gateway?: string | null
+          payment_gateway_id?: string | null
+          payment_link?: string | null
+          payment_method?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_invoices_collection_rule"
+            columns: ["collection_rule_id"]
+            isOneToOne: false
+            referencedRelation: "collection_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_invoices_customer"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_invoices_organization"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_history: {
+        Row: {
+          channel: string
+          content: string
+          created_at: string | null
+          customer_id: string
+          error_message: string | null
+          id: string
+          invoice_id: string | null
+          message_type: string
+          organization_id: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          channel: string
+          content: string
+          created_at?: string | null
+          customer_id: string
+          error_message?: string | null
+          id?: string
+          invoice_id?: string | null
+          message_type: string
+          organization_id?: string | null
+          sent_at?: string | null
+          status: string
+        }
+        Update: {
+          channel?: string
+          content?: string
+          created_at?: string | null
+          customer_id?: string
+          error_message?: string | null
+          id?: string
+          invoice_id?: string | null
+          message_type?: string
+          organization_id?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_message_history_customer"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_message_history_invoice"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_message_history_organization"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messaging_settings: {
+        Row: {
+          additional_config: Json | null
+          api_endpoint: string | null
+          auth_token: string | null
+          channel: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          organization_id: string | null
+          phone_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          additional_config?: Json | null
+          api_endpoint?: string | null
+          auth_token?: string | null
+          channel: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          phone_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          additional_config?: Json | null
+          api_endpoint?: string | null
+          auth_token?: string | null
+          channel?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          phone_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_messaging_settings_organization"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          blocked: boolean | null
+          created_at: string | null
+          deleted_at: string | null
+          email: string
+          gateway: string | null
+          id: string
+          is_admin: boolean | null
+          last_payment_date: string | null
+          logo_url: string | null
+          name: string
+          phone: string | null
+          primary_color: string | null
+          subscription_amount: number | null
+          subscription_due_date: string | null
+          subscription_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email: string
+          gateway?: string | null
+          id?: string
+          is_admin?: boolean | null
+          last_payment_date?: string | null
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          primary_color?: string | null
+          subscription_amount?: number | null
+          subscription_due_date?: string | null
+          subscription_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string
+          gateway?: string | null
+          id?: string
+          is_admin?: boolean | null
+          last_payment_date?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          primary_color?: string | null
+          subscription_amount?: number | null
+          subscription_due_date?: string | null
+          subscription_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      payment_gateway_settings: {
+        Row: {
+          additional_config: Json | null
+          api_key: string
+          api_secret: string | null
+          created_at: string | null
+          gateway_name: string
+          id: string
+          is_active: boolean | null
+          organization_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          additional_config?: Json | null
+          api_key: string
+          api_secret?: string | null
+          created_at?: string | null
+          gateway_name: string
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          additional_config?: Json | null
+          api_key?: string
+          api_secret?: string | null
+          created_at?: string | null
+          gateway_name?: string
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_payment_gateway_settings_organization"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          organization_id: string | null
+          setting_key: string
+          setting_value: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          setting_key: string
+          setting_value: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          setting_key?: string
+          setting_value?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_system_settings_organization"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          organization_id: string | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          organization_id?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          organization_id?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      apply_payment: {
+        Args: {
+          p_invoice_id: string
+          p_amount: number
+          p_payment_method: string
+          p_payment_gateway: string
+          p_payment_gateway_id: string
+          p_org_id: string
+        }
+        Returns: boolean
+      }
+      clean_up_trash: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      get_pending_messages: {
+        Args: {
+          p_org_id: string
+        }
+        Returns: {
+          invoice_id: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          message_type: string
+          template_text: string
+          payment_link: string
+          amount: number
+          days_to_due: number
+          days_overdue: number
+        }[]
+      }
+      get_trash_items: {
+        Args: {
+          org_id: string
+        }
+        Returns: {
+          id: string
+          entity_type: string
+          name: string
+          deleted_at: string
+        }[]
+      }
+      get_user_organization_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      permanently_delete_from_trash: {
+        Args: {
+          p_id: string
+          p_entity_type: string
+          p_org_id: string
+        }
+        Returns: boolean
+      }
+      restore_from_trash: {
+        Args: {
+          p_id: string
+          p_entity_type: string
+          p_org_id: string
+        }
+        Returns: boolean
+      }
+      update_overdue_invoices: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
