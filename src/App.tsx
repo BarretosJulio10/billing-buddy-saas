@@ -58,7 +58,15 @@ function RequireNoAuth({ children }: { children: JSX.Element }) {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    // Check if the user is admin
+    const isAdmin = user.email === 'julioquintanilha@hotmail.com' || false;
+    
+    // Redirect to appropriate panel
+    if (isAdmin) {
+      return <Navigate to="/admin" replace />;
+    } else {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return children;
