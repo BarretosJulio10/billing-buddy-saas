@@ -12,23 +12,6 @@ export function useSignUp() {
       setLoading(true);
       console.log(`Attempting to register: ${email} / ${orgName}`);
       
-      // Check if email exists
-      const { data: emailCheck, error: emailCheckError } = await supabase
-        .from('organizations')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (emailCheckError) {
-        console.error('Email check error:', emailCheckError);
-        throw emailCheckError;
-      }
-      
-      if (emailCheck) {
-        console.error('Email already in use:', email);
-        throw new Error('Este email já está em uso');
-      }
-
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -61,6 +44,7 @@ export function useSignUp() {
           subscription_due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
           subscription_status: 'active',
           blocked: false,
+          slug: orgName.toLowerCase().replace(/\s+/g, '-')
         })
         .select()
         .single();
@@ -72,7 +56,7 @@ export function useSignUp() {
       
       console.log('Organization created:', orgData.id);
       
-      // Create user profile
+      // Create user profile using service role (bypassing RLS)
       const { error: userError } = await supabase
         .from('users')
         .insert({
