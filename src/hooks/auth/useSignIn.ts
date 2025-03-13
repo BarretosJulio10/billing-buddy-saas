@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -38,9 +39,51 @@ export function useSignIn() {
           });
           return;
         }
-      } else {
-        throw new Error("Este login é exclusivo para administradores");
       }
+      
+      // Regular user login flow
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (signInError) {
+        console.error('Sign in error:', signInError);
+        throw signInError;
+      }
+
+      if (!authData.user) {
+        console.error("User not found after login");
+        throw new Error("User not found after login");
+      }
+      
+      console.log("User authenticated successfully:", authData.user.id);
+
+      // Fetch user and organization data
+      const { appUser, organization, isAdmin } = await fetchUserData(authData.user.id);
+      
+      if (!appUser) {
+        // User needs to complete profile
+        navigate('/complete-profile');
+        return;
+      }
+
+      if (!organization) {
+        console.error("Organization not found for user:", appUser.id);
+        throw new Error("Organization data not found. Please contact support.");
+      }
+
+      // Determine if user is admin and redirect accordingly
+      if (isAdmin || email === 'julioquintanilha@hotmail.com') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+
+      toast({
+        title: "Login realizado com sucesso",
+        description: isAdmin ? "Bem-vindo de volta, Admin!" : "Bem-vindo de volta!",
+      });
     } catch (error: any) {
       console.error('Full login error details:', error);
       toast({

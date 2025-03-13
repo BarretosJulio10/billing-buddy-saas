@@ -36,7 +36,7 @@ function RequireAuth({ children, isAdminRequired = false }: { children: JSX.Elem
   }
 
   if (!user) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (isAdminRequired && !isAdmin) {
@@ -71,16 +71,14 @@ function App() {
         <AuthProvider>
           <Suspense fallback={<div className="flex items-center justify-center h-screen">Carregando...</div>}>
             <Routes>
-              {/* Admin Login Route */}
-              <Route 
-                path="/admin/login" 
-                element={<Login />} 
-              />
-              
-              {/* Redirect from old login path */}
+              {/* Public Routes */}
               <Route 
                 path="/login" 
-                element={<Navigate to="/admin/login" replace />} 
+                element={
+                  <RequireNoAuth>
+                    <Login />
+                  </RequireNoAuth>
+                } 
               />
               
               <Route 
