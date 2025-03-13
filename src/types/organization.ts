@@ -14,6 +14,8 @@ export interface Organization {
   isAdmin: boolean;
   blocked: boolean;
   subscriptionExpiringSoon?: boolean;
+  paymentLink?: string;
+  paymentId?: string;
 }
 
 export interface User {

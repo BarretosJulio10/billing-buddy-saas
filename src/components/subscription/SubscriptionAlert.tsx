@@ -1,90 +1,58 @@
 
-import { useState, useEffect } from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { format, differenceInDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { generatePaymentLink } from "@/utils/paymentUtils";
 
 export function SubscriptionAlert() {
-  const { organization, subscriptionExpiringSoon } = useAuth();
-  const [showAlert, setShowAlert] = useState(false);
-  const [paymentUrl, setPaymentUrl] = useState("");
-  const [daysUntilDue, setDaysUntilDue] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const { organization } = useAuth();
 
-  useEffect(() => {
-    if (organization && subscriptionExpiringSoon) {
-      setShowAlert(true);
-      
-      const dueDate = new Date(organization.subscriptionDueDate);
-      const today = new Date();
-      setDaysUntilDue(differenceInDays(dueDate, today));
-      
-      // Buscar ou gerar link de pagamento
-      generatePaymentLink();
-    }
-  }, [organization, subscriptionExpiringSoon]);
-
-  const generatePaymentLink = async () => {
+  const handlePayNow = async () => {
     if (!organization) return;
     
     try {
-      // Isto seria substituído por uma chamada real ao gateway de pagamento
-      // Por enquanto é apenas um placeholder
-      setPaymentUrl("#/pagamento");
-      
-      // Aqui você faria uma chamada para gerar o link de pagamento
-      // Exemplo:
-      // const { data } = await supabase.functions.invoke('generate-payment-link', {
-      //   body: { organizationId: organization.id, amount: organization.subscriptionAmount }
-      // });
-      // if (data?.paymentUrl) {
-      //   setPaymentUrl(data.paymentUrl);
-      // }
+      setLoading(true);
+      // In a real application, this would redirect to the payment gateway
+      const paymentLink = await generatePaymentLink(organization);
+      window.open(paymentLink, '_blank');
     } catch (error) {
-      console.error('Erro ao gerar link de pagamento:', error);
+      console.error("Error generating payment link:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePay = () => {
-    if (paymentUrl) {
-      window.open(paymentUrl, '_blank');
-    }
-    setShowAlert(false);
-  };
+  if (!organization?.subscriptionExpiringSoon) return null;
 
   return (
-    <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Sua assinatura vence em breve</AlertDialogTitle>
-          <AlertDialogDescription>
-            A mensalidade do sistema vence em {daysUntilDue} {daysUntilDue === 1 ? 'dia' : 'dias'}, 
-            em {organization?.subscriptionDueDate ? format(new Date(organization.subscriptionDueDate), "dd 'de' MMMM", { locale: ptBR }) : ''}. 
-            O valor é de R$ {organization?.subscriptionAmount?.toFixed(2)}. 
-            Clique no botão abaixo para pagar agora e continuar usando todos os recursos do sistema.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogAction asChild>
-            <Button onClick={handlePay} className="bg-green-600 hover:bg-green-700">
-              Pagar Agora
+    <div className="bg-amber-50 border border-amber-200 rounded-md p-4 mb-6">
+      <div className="flex items-start">
+        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 mr-3" />
+        <div className="flex-1">
+          <h3 className="text-sm font-medium text-amber-800">
+            Sua assinatura vence em breve
+          </h3>
+          <div className="mt-1 text-sm text-amber-700">
+            <p>
+              Sua assinatura vencerá em breve. Para evitar interrupções no serviço, 
+              por favor, realize o pagamento antes da data de vencimento.
+            </p>
+          </div>
+          <div className="mt-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white hover:bg-amber-50 border-amber-200 text-amber-800"
+              onClick={handlePayNow}
+              disabled={loading}
+            >
+              {loading ? "Processando..." : "Pagar agora"}
             </Button>
-          </AlertDialogAction>
-          <Button variant="outline" onClick={() => setShowAlert(false)}>
-            Pagar depois
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

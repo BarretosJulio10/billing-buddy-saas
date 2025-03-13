@@ -33,55 +33,29 @@ serve(async (req) => {
       );
     }
 
-    // Verify the requesting user is an admin first
-    const authHeader = req.headers.get('Authorization') || '';
-    const token = authHeader.replace('Bearer ', '');
-    
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-      );
-    }
-    
-    // Check if user is admin
-    const { data: adminCheck, error: adminError } = await supabaseAdmin
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-    
-    if (adminError || adminCheck?.role !== 'admin') {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized: Admin role required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
-      );
-    }
-
-    // Find a user that belongs to the organization
-    const { data: orgUser, error: orgUserError } = await supabaseAdmin
+    // Get user from organization with admin role to impersonate
+    const { data: users, error: usersError } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('organization_id', organizationId)
-      .limit(1)
-      .single();
+      .eq('role', 'admin')
+      .limit(1);
     
-    if (orgUserError || !orgUser) {
-      console.error("Error finding user for organization:", orgUserError);
+    if (usersError || !users || users.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No users found for this organization' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        JSON.stringify({ error: 'No admin user found for this organization' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
 
-    // Generate a new session for the organization user
+    const userId = users[0].id;
+
+    // Generate a new session for the admin user of the organization
     const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createUserSession(
       {
-        userId: orgUser.id,
+        userId: userId,
         properties: {
-          impersonated_by: user.id
+          is_impersonated: true
         }
       }
     );

@@ -1,10 +1,9 @@
 
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Organization } from "@/types/organization";
-import { Building } from "lucide-react";
+import { format } from "date-fns";
+import { Building, Mail, Phone, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface OrganizationInfoProps {
   organization: Organization;
@@ -15,37 +14,54 @@ export function OrganizationInfo({ organization, isOverdue }: OrganizationInfoPr
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Building className="h-5 w-5 text-primary" />
-            <CardTitle>{organization.name}</CardTitle>
-          </div>
-          {organization.blocked ? (
-            <Badge variant="destructive">Bloqueado</Badge>
-          ) : isOverdue ? (
-            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-              Atrasado
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              Ativo
-            </Badge>
-          )}
-        </div>
-        <CardDescription>{organization.email}</CardDescription>
+        <CardTitle className="text-lg">Detalhes da Empresa</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <div className="text-sm font-medium text-muted-foreground">Cadastrado em</div>
-          <div>{new Date(organization.createdAt).toLocaleDateString('pt-BR')}</div>
+        <div className="flex items-start gap-3">
+          <Building className="h-4 w-4 mt-1 text-muted-foreground" />
+          <div className="space-y-1">
+            <div className="font-medium">{organization.name}</div>
+            <div className="text-sm text-muted-foreground">
+              {organization.blocked ? (
+                <Badge variant="destructive">Bloqueado</Badge>
+              ) : isOverdue ? (
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                  Pagamento atrasado
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  Ativo
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-start gap-3">
+          <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
+          <div className="space-y-1">
+            <div className="font-medium">Email</div>
+            <div className="text-sm">{organization.email}</div>
+          </div>
         </div>
         
         {organization.phone && (
-          <div>
-            <div className="text-sm font-medium text-muted-foreground">Telefone</div>
-            <div>{organization.phone}</div>
+          <div className="flex items-start gap-3">
+            <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
+            <div className="space-y-1">
+              <div className="font-medium">Telefone</div>
+              <div className="text-sm">{organization.phone}</div>
+            </div>
           </div>
         )}
+        
+        <div className="flex items-start gap-3">
+          <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
+          <div className="space-y-1">
+            <div className="font-medium">Cadastrado em</div>
+            <div className="text-sm">{format(new Date(organization.createdAt), "dd/MM/yyyy")}</div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
