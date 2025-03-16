@@ -53,34 +53,32 @@ export default function CompleteProfile() {
     try {
       setIsLoading(true);
       
-      // Create organization
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .insert({
-          name: data.orgName,
-          email: user.email || "",
-          subscription_due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
-          subscription_status: 'active',
-          blocked: false,
-        })
-        .select()
-        .single();
+      // Create organization using an RPC function to avoid RLS issues
+      const { data: orgResult, error: orgError } = await supabase.rpc('create_organization', {
+        org_name: data.orgName,
+        org_email: user.email || "",
+        due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0]
+      });
         
       if (orgError) {
         console.error('Organization creation error:', orgError);
         throw orgError;
       }
       
-      // Update user profile
-      const { error: userError } = await supabase
-        .from('users')
-        .update({
-          organization_id: orgData.id,
-          first_name: data.firstName,
-          last_name: data.lastName || null,
-          role: 'admin',
-        })
-        .eq('id', user.id);
+      if (!orgResult || !orgResult.id) {
+        throw new Error('Falha ao criar a organização');
+      }
+      
+      const orgId = orgResult.id;
+      
+      // Update user profile using an RPC function to avoid RLS issues
+      const { error: userError } = await supabase.rpc('update_user_profile', {
+        user_id: user.id,
+        org_id: orgId,
+        first_name: data.firstName,
+        last_name: data.lastName || null,
+        user_role: 'admin'
+      });
         
       if (userError) {
         console.error('User profile update error:', userError);
