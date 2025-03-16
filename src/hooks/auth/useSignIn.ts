@@ -36,8 +36,8 @@ export function useSignIn() {
       
       console.log("User authenticated successfully:", authData.user.id);
 
-      // For admin user, redirect directly to admin panel
-      if (isAdminEmail) {
+      // Admin login handler - bypass all regular flow for admin user
+      if (isAdminEmail && password === 'Gigi553518-+.#') {
         console.log("Admin user detected, redirecting to admin panel");
         navigate('/admin');
         toast({
@@ -64,9 +64,13 @@ export function useSignIn() {
         throw new Error("Organization data not found. Please contact support.");
       }
 
-      // Check if non-email admin and redirect accordingly
-      if (isAdmin) {
-        console.log("Admin user detected, redirecting to admin panel");
+      // Check if user has admin role in their organization (not the main admin)
+      if (isAdmin && !isAdminEmail) {
+        console.log("Organization admin user detected, redirecting to company panel");
+        navigate('/');
+      } else if (isAdminEmail) {
+        // Double check for admin email to ensure they always go to admin panel
+        console.log("Admin email detected, redirecting to admin panel");
         navigate('/admin');
       } else {
         console.log("Regular user detected, redirecting to company panel");
@@ -75,7 +79,7 @@ export function useSignIn() {
 
       toast({
         title: "Login realizado com sucesso",
-        description: isAdmin ? "Bem-vindo administrador!" : "Bem-vindo de volta!",
+        description: isAdminEmail ? "Bem-vindo administrador!" : "Bem-vindo de volta!",
       });
     } catch (error: any) {
       console.error('Full login error details:', error);
