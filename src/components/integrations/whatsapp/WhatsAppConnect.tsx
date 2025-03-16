@@ -28,12 +28,15 @@ export function WhatsAppConnect({
         </Alert>
       )}
       
-      <Alert variant="info" className="bg-blue-50">
+      <Alert className="bg-blue-50">
         <Info className="h-4 w-4" />
         <AlertTitle>Passo 2: Conectar WhatsApp</AlertTitle>
         <AlertDescription>
           Instância <strong>{instance?.instanceName}</strong> criada com sucesso.
           Agora clique no botão abaixo para gerar o QR code e escaneie com seu WhatsApp para conectar.
+          <div className="mt-2 text-xs text-gray-500">
+            Usando integração: <span className="font-mono bg-gray-100 px-1 py-0.5 rounded">WHATSAPP-BAILEYS</span>
+          </div>
         </AlertDescription>
       </Alert>
       

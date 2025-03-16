@@ -26,13 +26,14 @@ export const instanceManager = {
           instanceName,
           token: organizationId,
           qrcode: true,
+          integration: "WHATSAPP-BAILEYS", // Especificando o tipo de integração
           webhook: {
             url: '',
             enabled: false,
           },
           // Baseado na documentação da Evolution API
           settings: {
-            rejectCalls: true,
+            rejectCall: true,
             msgMaxChars: 1000,
             sendMsgDelay: 1500,
             disableReadReceipts: false,
