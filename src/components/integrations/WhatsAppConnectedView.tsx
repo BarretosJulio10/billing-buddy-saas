@@ -1,7 +1,7 @@
 
 import { CardContent } from "@/components/ui/card";
 import { WhatsAppInstance } from "@/utils/messaging";
-import { WhatsAppConnected } from "../integrations/WhatsAppConnected";
+import { WhatsAppConnected } from "./WhatsAppConnected";
 
 interface WhatsAppConnectedViewProps {
   instance: WhatsAppInstance;
