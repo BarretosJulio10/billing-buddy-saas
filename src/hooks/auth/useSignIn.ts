@@ -44,7 +44,7 @@ export function useSignIn() {
         navigate('/admin');
         toast({
           title: "Login realizado com sucesso",
-          description: "Bem-vindo administrador!",
+          description: "Bem-vindo!",
         });
         setLoading(false);
         return;

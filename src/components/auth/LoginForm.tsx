@@ -16,7 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X, Info, Lock } from "lucide-react";
+import { X } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -32,13 +32,12 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
   const { signIn } = useAuth();
   const { toast } = useToast();
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [isAdminMode, setIsAdminMode] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: isAdminMode ? "julioquintanilha@hotmail.com" : "",
-      password: isAdminMode ? "Gigi553518-+.#" : "",
+      email: "",
+      password: "",
     },
   });
 
@@ -60,17 +59,6 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
     }
   };
 
-  const toggleAdminMode = () => {
-    setIsAdminMode(!isAdminMode);
-    if (!isAdminMode) {
-      form.setValue("email", "julioquintanilha@hotmail.com");
-      form.setValue("password", "Gigi553518-+.#");
-    } else {
-      form.setValue("email", "");
-      form.setValue("password", "");
-    }
-  };
-
   const clearError = () => {
     setLoginError(null);
   };
@@ -84,15 +72,6 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
             <button onClick={clearError} className="text-xs">
               <X size={16} />
             </button>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {isAdminMode && (
-        <Alert variant="default" className="mb-4 bg-blue-50 border-blue-200">
-          <AlertDescription className="flex items-center gap-2 text-blue-700">
-            <Lock size={16} />
-            Modo Administrador Ativado
           </AlertDescription>
         </Alert>
       )}
@@ -132,11 +111,7 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
           )}
         />
         
-        <div className="flex justify-between items-center">
-          <Button type="button" variant="ghost" size="sm" className={`text-xs flex items-center gap-1 ${isAdminMode ? 'text-blue-600' : ''}`} onClick={toggleAdminMode}>
-            <Info size={12} />
-            {isAdminMode ? "Modo Normal" : "Modo Admin"}
-          </Button>
+        <div className="flex justify-end">
           <Button type="submit" className="w-32" disabled={isLoading}>
             {isLoading ? "Entrando..." : "Entrar"}
           </Button>
