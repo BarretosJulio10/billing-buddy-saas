@@ -11,32 +11,21 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Mock data - this will be replaced with actual API data in production
-const initialData = [
-  { name: "Jan", total: 12450 },
-  { name: "Fev", total: 15250 },
-  { name: "Mar", total: 14830 },
-  { name: "Abr", total: 16590 },
-  { name: "Mai", total: 18340 },
-  { name: "Jun", total: 17580 },
-];
+type ChartData = { name: string; total: number }[];
 
 export function InvoiceTimelineChart() {
-  const [data, setData] = useState<{ name: string; total: number }[]>([]);
+  const [data, setData] = useState<ChartData>([]);
   
-  // Simulating data fetch
+  // Placeholder for real data fetch
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setData(initialData);
-    }, 500);
-    
-    return () => clearTimeout(timer);
+    // This will be replaced with real API calls
+    // For now, we'll show an empty chart
   }, []);
 
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-[220px]">
-        <div className="text-muted-foreground">Carregando dados...</div>
+        <div className="text-muted-foreground">Sem dados disponíveis</div>
       </div>
     );
   }

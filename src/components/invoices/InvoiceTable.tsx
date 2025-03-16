@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Table,
@@ -38,44 +39,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const mockInvoices: Invoice[] = [
-  { 
-    id: "1", 
-    customerId: "1", 
-    customerName: "João Silva", 
-    amount: 199.90, 
-    description: "Mensalidade Agosto 2023", 
-    dueDate: new Date(2023, 7, 10), 
-    status: "paid",
-    paymentMethod: "mercadopago",
-    messageTemplateId: "1"
-  },
-  { 
-    id: "2", 
-    customerId: "2", 
-    customerName: "Maria Oliveira", 
-    amount: 129.90, 
-    description: "Mensalidade Agosto 2023", 
-    dueDate: new Date(2023, 7, 15), 
-    status: "pending",
-    paymentMethod: "asaas",
-    messageTemplateId: "2"
-  },
-  { 
-    id: "3", 
-    customerId: "3", 
-    customerName: "Pedro Santos", 
-    amount: 79.90, 
-    description: "Mensalidade Julho 2023", 
-    dueDate: new Date(2023, 6, 5), 
-    status: "overdue",
-    paymentMethod: "mercadopago",
-    messageTemplateId: "1"
-  },
-];
-
 export function InvoiceTable() {
-  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [invoiceToEdit, setInvoiceToEdit] = useState<Invoice | null>(null);
   const { toast } = useToast();
@@ -103,7 +68,6 @@ export function InvoiceTable() {
             ? { 
                 ...invoice, 
                 ...updatedInvoice,
-                customerName: mockInvoices.find(c => c.customerId === updatedInvoice.customerId)?.customerName || ""
               }
             : invoice
         )

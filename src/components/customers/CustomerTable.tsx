@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Table,
@@ -22,36 +23,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const mockCustomers = [
-  { 
-    id: "1", 
-    name: "João Silva", 
-    email: "joao@exemplo.com", 
-    phone: "(11) 98765-4321", 
-    document: "123.456.789-00",
-    address: "Rua das Flores, 123",
-    isActive: true 
-  },
-  { 
-    id: "2", 
-    name: "Maria Oliveira", 
-    email: "maria@exemplo.com", 
-    phone: "(11) 91234-5678", 
-    document: "987.654.321-00",
-    address: "Av. Paulista, 1000",
-    isActive: false 
-  },
-  { 
-    id: "3", 
-    name: "Pedro Santos", 
-    email: "pedro@exemplo.com", 
-    phone: "(11) 99876-5432", 
-    document: "456.789.123-00",
-    address: "Rua Augusta, 500",
-    isActive: true 
-  },
-];
-
 export type Customer = {
   id: string;
   name: string;
@@ -63,7 +34,7 @@ export type Customer = {
 };
 
 export function CustomerTable() {
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
   const { toast } = useToast();

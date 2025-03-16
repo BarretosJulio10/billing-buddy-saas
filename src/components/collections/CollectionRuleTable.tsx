@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Table,
@@ -23,36 +24,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-// Temporary mock data until Supabase integration
-const mockCollectionRules: (CollectionRule & { overdueDaysAfter: number[] })[] = [
-  { 
-    id: "1", 
-    name: "Modelo Padrão", 
-    isActive: true,
-    reminderDaysBefore: 3,
-    sendOnDueDate: true,
-    overdueDaysAfter: [1, 3, 5, 10],
-    reminderTemplate: "Olá {cliente}, lembre-se que sua fatura de {valor} vence em {dias_para_vencer} dias.",
-    dueDateTemplate: "Olá {cliente}, sua fatura de {valor} vence hoje. Link de pagamento: {link}",
-    overdueTemplate: "Olá {cliente}, sua fatura de {valor} está atrasada há {dias_atraso} dias. Link de pagamento: {link}",
-    confirmationTemplate: "Olá {cliente}, confirmamos o recebimento do pagamento da sua fatura de {valor}. Obrigado!",
-  },
-  { 
-    id: "2", 
-    name: "Modelo Premium", 
-    isActive: true,
-    reminderDaysBefore: 5,
-    sendOnDueDate: true,
-    overdueDaysAfter: [2, 5, 10, 15],
-    reminderTemplate: "Prezado {cliente}, sua fatura de {valor} vencerá em {dias_para_vencer} dias. Por favor, prepare-se para o pagamento.",
-    dueDateTemplate: "Prezado {cliente}, sua fatura de {valor} vence hoje. Clique aqui para pagar: {link}",
-    overdueTemplate: "Prezado {cliente}, sua fatura de {valor} está atrasada há {dias_atraso} dias. Clique aqui para regularizar: {link}",
-    confirmationTemplate: "Prezado {cliente}, agradecemos pelo pagamento da sua fatura de {valor}. Continue aproveitando nossos serviços!",
-  },
-];
-
 export function CollectionRuleTable() {
-  const [collectionRules, setCollectionRules] = useState(mockCollectionRules);
+  const [collectionRules, setCollectionRules] = useState<(CollectionRule & { overdueDaysAfter: number[] })[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [ruleToEdit, setRuleToEdit] = useState<CollectionRule | null>(null);
   const { toast } = useToast();

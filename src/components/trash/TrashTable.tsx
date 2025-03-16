@@ -23,12 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -50,45 +44,8 @@ interface DeletedItem {
   deletedAt: Date;
 }
 
-// Generate mock deleted items
-const generateMockDeletedItems = (): DeletedItem[] => {
-  const now = new Date();
-  return [
-    {
-      id: "1",
-      name: "João Silva",
-      type: "customer",
-      deletedAt: subMonths(now, 1),
-    },
-    {
-      id: "2",
-      name: "Mensalidade Agosto 2023",
-      type: "invoice",
-      deletedAt: subMonths(now, 0.5),
-    },
-    {
-      id: "3",
-      name: "Modelo Premium",
-      type: "collection_rule",
-      deletedAt: subMonths(now, 1.2),
-    },
-    {
-      id: "4",
-      name: "Maria Oliveira",
-      type: "customer",
-      deletedAt: subMonths(now, 0.2),
-    },
-    {
-      id: "5",
-      name: "Modelo Educacional",
-      type: "collection_rule",
-      deletedAt: subMonths(now, 1.8),
-    },
-  ];
-};
-
 export function TrashTable() {
-  const [deletedItems, setDeletedItems] = useState<DeletedItem[]>(generateMockDeletedItems());
+  const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const { toast } = useToast();
