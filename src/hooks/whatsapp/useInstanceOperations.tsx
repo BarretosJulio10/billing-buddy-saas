@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { messagingUtils } from "@/utils/messaging";
 import { useToast } from "@/components/ui/use-toast";
@@ -19,7 +18,6 @@ export function useInstanceOperations(organizationId: string | undefined) {
     setError(null);
     
     try {
-      // Primeiro salvar o nome da instância no banco de dados
       const saveResult = await messagingUtils.saveWhatsAppInstanceSettings(
         organizationId, 
         instanceName
@@ -29,7 +27,6 @@ export function useInstanceOperations(organizationId: string | undefined) {
         throw new Error(saveResult.message || "Não foi possível salvar as configurações");
       }
       
-      // Agora criar a instância com a Evolution API
       const createResult = await messagingUtils.createWhatsAppInstance(
         instanceName, 
         organizationId
@@ -132,8 +129,7 @@ export function useInstanceOperations(organizationId: string | undefined) {
     
     try {
       console.log("Reiniciando instância WhatsApp:", instanceName);
-      // Esse método precisa ser adicionado ao messagingUtils
-      const result = await messagingUtils.whatsAppUtils.restartInstance(instanceName);
+      const result = await messagingUtils.restartWhatsAppInstance(instanceName);
       console.log("Resultado da reinicialização:", result);
       
       if (result.success) {

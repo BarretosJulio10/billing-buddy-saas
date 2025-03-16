@@ -29,6 +29,7 @@ export const messagingUtils = {
   checkWhatsAppConnection: whatsAppUtils.checkConnection,
   disconnectWhatsApp: whatsAppUtils.disconnect,
   deleteWhatsAppInstance: whatsAppUtils.deleteInstance,
+  restartWhatsAppInstance: whatsAppUtils.restartInstance,
   
   // Message sending
   sendWhatsAppMessage: whatsAppUtils.sendMessage,
