@@ -1,32 +1,97 @@
 
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
+import { useOrganization } from "@/hooks/useOrganization";
 
-// Mock data - this will be replaced with actual API data in production
-const initialData = [
-  { name: "Pagas", value: 48, color: "hsl(var(--success))" },
-  { name: "Pendentes", value: 32, color: "hsl(var(--primary))" },
-  { name: "Atrasadas", value: 14, color: "hsl(var(--destructive))" },
-  { name: "Canceladas", value: 6, color: "hsl(var(--muted))" },
-];
+type StatusCount = {
+  name: string;
+  value: number;
+  color: string;
+};
 
 export function StatusDistributionChart() {
-  const [data, setData] = useState<{ name: string; value: number; color: string }[]>([]);
+  const [data, setData] = useState<StatusCount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { organization } = useOrganization();
   
-  // Simulating data fetch
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setData(initialData);
-    }, 500);
+    async function fetchInvoiceStats() {
+      if (!organization) return;
+      
+      try {
+        setLoading(true);
+        
+        // Get paid invoices count
+        const { count: paidCount, error: paidError } = await supabase
+          .from('invoices')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organization.id)
+          .eq('status', 'paid')
+          .is('deleted_at', null);
+        
+        if (paidError) throw paidError;
+        
+        // Get pending invoices count
+        const { count: pendingCount, error: pendingError } = await supabase
+          .from('invoices')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organization.id)
+          .eq('status', 'pending')
+          .is('deleted_at', null);
+        
+        if (pendingError) throw pendingError;
+        
+        // Get overdue invoices count
+        const { count: overdueCount, error: overdueError } = await supabase
+          .from('invoices')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organization.id)
+          .eq('status', 'overdue')
+          .is('deleted_at', null);
+        
+        if (overdueError) throw overdueError;
+        
+        // Get canceled invoices count
+        const { count: canceledCount, error: canceledError } = await supabase
+          .from('invoices')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organization.id)
+          .eq('status', 'canceled')
+          .is('deleted_at', null);
+        
+        if (canceledError) throw canceledError;
+        
+        const chartData: StatusCount[] = [
+          { name: "Pagas", value: paidCount || 0, color: "hsl(var(--success))" },
+          { name: "Pendentes", value: pendingCount || 0, color: "hsl(var(--primary))" },
+          { name: "Atrasadas", value: overdueCount || 0, color: "hsl(var(--destructive))" },
+          { name: "Canceladas", value: canceledCount || 0, color: "hsl(var(--muted))" },
+        ].filter(item => item.value > 0);
+        
+        setData(chartData);
+      } catch (error) {
+        console.error('Error fetching invoice stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
     
-    return () => clearTimeout(timer);
-  }, []);
+    fetchInvoiceStats();
+  }, [organization]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[220px]">
+        <div className="text-muted-foreground">Carregando dados...</div>
+      </div>
+    );
+  }
 
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-[220px]">
-        <div className="text-muted-foreground">Carregando dados...</div>
+        <div className="text-muted-foreground">Sem dados disponíveis</div>
       </div>
     );
   }

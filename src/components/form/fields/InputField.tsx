@@ -7,10 +7,14 @@ import React from "react";
 interface InputFieldProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
-> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "name"> {
+> {
   form: UseFormReturn<TFieldValues>;
   name: TName;
   label: string;
+  type?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
 }
 
 export function InputField<
@@ -20,11 +24,22 @@ export function InputField<
   form, 
   name, 
   label, 
+  type = "text",
+  placeholder,
+  disabled,
+  className,
   ...props 
-}: InputFieldProps<TFieldValues, TName>) {
+}: InputFieldProps<TFieldValues, TName> & Omit<React.InputHTMLAttributes<HTMLInputElement>, "name" | "form" | "type">) {
   return (
     <FormFieldWrapper form={form} name={name} label={label}>
-      <Input {...form.register(name)} {...props} />
+      <Input 
+        {...form.register(name)} 
+        type={type}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={className}
+        {...props} 
+      />
     </FormFieldWrapper>
   );
 }
