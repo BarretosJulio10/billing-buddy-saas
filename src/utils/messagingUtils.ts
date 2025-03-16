@@ -9,6 +9,8 @@
 const EVOLUTION_API_URL = "https://evolution.pagoupix.com.br";
 const EVOLUTION_API_KEY = "f4605620efebc20566233aae05d9ed39";
 
+import { supabase } from "@/integrations/supabase/client";
+
 export interface WhatsAppInstance {
   instanceName: string;
   status: 'connected' | 'disconnected' | 'connecting';
@@ -17,6 +19,88 @@ export interface WhatsAppInstance {
 }
 
 export const messagingUtils = {
+  // WhatsApp instance settings storage in database
+  async saveWhatsAppInstanceSettings(
+    organizationId: string,
+    instanceName: string
+  ): Promise<{ success: boolean; message?: string }> {
+    try {
+      // Check if there's an existing entry
+      const { data: existingSettings } = await supabase
+        .from('messaging_settings')
+        .select()
+        .eq('organization_id', organizationId)
+        .eq('channel', 'whatsapp')
+        .maybeSingle();
+      
+      if (existingSettings) {
+        // Update existing entry
+        const { error } = await supabase
+          .from('messaging_settings')
+          .update({
+            additional_config: { instanceName },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingSettings.id);
+        
+        if (error) throw error;
+      } else {
+        // Create new entry
+        const { error } = await supabase
+          .from('messaging_settings')
+          .insert({
+            organization_id: organizationId,
+            channel: 'whatsapp',
+            is_active: true,
+            additional_config: { instanceName }
+          });
+        
+        if (error) throw error;
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving WhatsApp instance settings:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  },
+  
+  async getWhatsAppInstanceSettings(
+    organizationId: string
+  ): Promise<{ success: boolean; instanceName?: string; message?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('messaging_settings')
+        .select()
+        .eq('organization_id', organizationId)
+        .eq('channel', 'whatsapp')
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      if (data && data.additional_config && data.additional_config.instanceName) {
+        return {
+          success: true,
+          instanceName: data.additional_config.instanceName
+        };
+      }
+      
+      return {
+        success: false,
+        message: 'Nenhuma instância configurada'
+      };
+    } catch (error) {
+      console.error('Error getting WhatsApp instance settings:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  },
+
   async sendWhatsAppMessage(
     phoneNumber: string,
     message: string,
@@ -67,7 +151,7 @@ export const messagingUtils = {
   async sendTelegramMessage(
     chatId: string,
     message: string
-  ): Promise<{ success: boolean; messageId?: string }> {
+  ): Promise<{ success: boolean;  messageId?: string }> {
     console.log(`Sending Telegram message to chat ${chatId}:`, message);
     
     // In a real implementation, this would call the Telegram API
@@ -84,6 +168,8 @@ export const messagingUtils = {
     organizationId: string
   ): Promise<{ success: boolean; message?: string }> {
     try {
+      console.log(`Creating WhatsApp instance ${instanceName} for org ${organizationId}`);
+      
       const response = await fetch(`${EVOLUTION_API_URL}/instance/create`, {
         method: 'POST',
         headers: {
@@ -98,6 +184,7 @@ export const messagingUtils = {
       });
       
       const data = await response.json();
+      console.log("Create instance response:", data);
       
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to create WhatsApp instance');
@@ -120,6 +207,7 @@ export const messagingUtils = {
     instanceName: string
   ): Promise<{ success: boolean; qrcode?: string; message?: string }> {
     try {
+      console.log("Fetching QR code for instance:", instanceName);
       const response = await fetch(`${EVOLUTION_API_URL}/instance/qrcode/${instanceName}?image=true`, {
         method: 'GET',
         headers: {
@@ -128,6 +216,7 @@ export const messagingUtils = {
       });
       
       const data = await response.json();
+      console.log("QR code response:", data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to get QR code');
@@ -157,6 +246,7 @@ export const messagingUtils = {
     instanceName: string
   ): Promise<{ success: boolean; connected: boolean; number?: string }> {
     try {
+      console.log("Checking connection for instance:", instanceName);
       const response = await fetch(`${EVOLUTION_API_URL}/instance/connectionState/${instanceName}`, {
         method: 'GET',
         headers: {
@@ -165,6 +255,7 @@ export const messagingUtils = {
       });
       
       const data = await response.json();
+      console.log("Connection state response:", data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to check connection');
@@ -191,6 +282,7 @@ export const messagingUtils = {
     instanceName: string
   ): Promise<{ success: boolean; message?: string }> {
     try {
+      console.log("Disconnecting instance:", instanceName);
       const response = await fetch(`${EVOLUTION_API_URL}/instance/logout/${instanceName}`, {
         method: 'DELETE',
         headers: {
@@ -199,6 +291,7 @@ export const messagingUtils = {
       });
       
       const data = await response.json();
+      console.log("Disconnect response:", data);
       
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to disconnect WhatsApp');
@@ -221,6 +314,7 @@ export const messagingUtils = {
     instanceName: string
   ): Promise<{ success: boolean; message?: string }> {
     try {
+      console.log("Deleting instance:", instanceName);
       const response = await fetch(`${EVOLUTION_API_URL}/instance/delete/${instanceName}`, {
         method: 'DELETE',
         headers: {
@@ -229,6 +323,7 @@ export const messagingUtils = {
       });
       
       const data = await response.json();
+      console.log("Delete instance response:", data);
       
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to delete WhatsApp instance');

@@ -47,19 +47,41 @@ export function SystemStatus() {
     
     setLoading(true);
     try {
-      const instanceName = `org_${organizationId}`;
-      console.log("Checking WhatsApp status in SystemStatus component:", instanceName);
-      const result = await messagingUtils.checkWhatsAppConnection(instanceName);
+      // First get the instance name from settings
+      const instanceSettings = await messagingUtils.getWhatsAppInstanceSettings(organizationId);
+      console.log("Instance settings in status check:", instanceSettings);
       
+      if (instanceSettings.success && instanceSettings.instanceName) {
+        // Check connection status for this instance
+        const result = await messagingUtils.checkWhatsAppConnection(instanceSettings.instanceName);
+        console.log("WhatsApp connection status:", result);
+        
+        setStatusData(prev => ({
+          ...prev,
+          whatsappStatus: {
+            connected: result.success && result.connected,
+            lastConnection: new Date().toISOString()
+          }
+        }));
+      } else {
+        // No instance configured
+        setStatusData(prev => ({
+          ...prev,
+          whatsappStatus: {
+            connected: false,
+            lastConnection: new Date().toISOString()
+          }
+        }));
+      }
+    } catch (error) {
+      console.error("Error checking WhatsApp status in sidebar:", error);
       setStatusData(prev => ({
         ...prev,
         whatsappStatus: {
-          connected: result.success && result.connected,
+          connected: false,
           lastConnection: new Date().toISOString()
         }
       }));
-    } catch (error) {
-      console.error("Error checking WhatsApp status in sidebar:", error);
     } finally {
       setLoading(false);
     }
