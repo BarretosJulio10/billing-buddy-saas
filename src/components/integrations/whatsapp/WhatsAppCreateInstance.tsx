@@ -27,7 +27,7 @@ export function WhatsAppCreateInstance({
         </Alert>
       )}
       
-      <Alert variant="info" className="bg-blue-50 border-blue-200">
+      <Alert variant="info" className="bg-blue-50">
         <Info className="h-4 w-4" />
         <AlertTitle>Passo 1: Criar instância</AlertTitle>
         <AlertDescription>
