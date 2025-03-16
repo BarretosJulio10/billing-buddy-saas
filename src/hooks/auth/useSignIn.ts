@@ -15,6 +15,9 @@ export function useSignIn() {
       setLoading(true);
       console.log(`Attempting to sign in: ${email}`);
       
+      // Check if this is the admin user
+      const isAdminEmail = email === 'julioquintanilha@hotmail.com';
+      
       // Sign in with provided credentials
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -33,12 +36,26 @@ export function useSignIn() {
       
       console.log("User authenticated successfully:", authData.user.id);
 
-      // Fetch user and organization data
+      // For admin user, redirect directly to admin panel
+      if (isAdminEmail) {
+        console.log("Admin user detected, redirecting to admin panel");
+        navigate('/admin');
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Bem-vindo administrador!",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // For regular users, fetch user data to check profile completion
       const { appUser, organization, isAdmin } = await fetchUserData(authData.user.id);
       
       if (!appUser) {
         // User needs to complete profile
+        console.log("User needs to complete profile");
         navigate('/complete-profile');
+        setLoading(false);
         return;
       }
 
@@ -47,8 +64,8 @@ export function useSignIn() {
         throw new Error("Organization data not found. Please contact support.");
       }
 
-      // Check if admin and redirect accordingly
-      if (isAdmin || email === 'julioquintanilha@hotmail.com') {
+      // Check if non-email admin and redirect accordingly
+      if (isAdmin) {
         console.log("Admin user detected, redirecting to admin panel");
         navigate('/admin');
       } else {
