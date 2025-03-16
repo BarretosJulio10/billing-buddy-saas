@@ -10,17 +10,19 @@ import { messageService } from './messageService';
 import { settingsManager } from './settingsManager';
 
 export const whatsAppUtils = {
-  // Settings storage in database
+  // Armazenamento de configurações no banco de dados
   saveInstanceSettings: settingsManager.saveInstanceSettings,
   getInstanceSettings: settingsManager.getInstanceSettings,
   
-  // Message sending
+  // Envio de mensagens
   sendMessage: messageService.sendMessage,
+  sendTemplate: messageService.sendTemplate,
   
-  // Evolution API WhatsApp instance management
+  // Gerenciamento de instâncias da Evolution API WhatsApp
   createInstance: instanceManager.createInstance,
   getQRCode: instanceManager.getQRCode,
   checkConnection: instanceManager.checkConnection,
   disconnect: instanceManager.disconnect,
-  deleteInstance: instanceManager.deleteInstance
+  deleteInstance: instanceManager.deleteInstance,
+  restartInstance: instanceManager.restartInstance
 };

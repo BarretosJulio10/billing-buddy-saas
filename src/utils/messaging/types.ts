@@ -10,6 +10,7 @@ export interface WhatsAppInstance {
   status: 'disconnected' | 'connecting' | 'connected';
   qrCode?: string;
   number?: string;
+  webhookUrl?: string;
 }
 
 export interface MessageSendResult {
@@ -40,4 +41,19 @@ export interface ConnectionResult {
 export interface InstanceActionResult {
   success: boolean;
   message?: string;
+}
+
+// Tipos específicos para a Evolution API
+export interface EvolutionAPIResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  state?: string;
+  qrcode?: string;
+  number?: string;
+  instance?: string;
+  key?: {
+    id: string;
+    [key: string]: any;
+  };
 }

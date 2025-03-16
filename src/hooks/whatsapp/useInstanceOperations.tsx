@@ -19,7 +19,7 @@ export function useInstanceOperations(organizationId: string | undefined) {
     setError(null);
     
     try {
-      // Save the instance name to the database first
+      // Primeiro salvar o nome da instância no banco de dados
       const saveResult = await messagingUtils.saveWhatsAppInstanceSettings(
         organizationId, 
         instanceName
@@ -29,7 +29,7 @@ export function useInstanceOperations(organizationId: string | undefined) {
         throw new Error(saveResult.message || "Não foi possível salvar as configurações");
       }
       
-      // Now create the instance with Evolution API
+      // Agora criar a instância com a Evolution API
       const createResult = await messagingUtils.createWhatsAppInstance(
         instanceName, 
         organizationId
@@ -52,7 +52,7 @@ export function useInstanceOperations(organizationId: string | undefined) {
         return { success: false };
       }
     } catch (error) {
-      console.error("Error creating WhatsApp instance:", error);
+      console.error("Erro ao criar instância WhatsApp:", error);
       setError(error instanceof Error ? error.message : "Erro ao criar instância");
       return { success: false };
     } finally {
@@ -81,7 +81,7 @@ export function useInstanceOperations(organizationId: string | undefined) {
       
       return qrResult.success;
     } catch (error) {
-      console.error("Error connecting WhatsApp:", error);
+      console.error("Erro ao conectar WhatsApp:", error);
       setError("Não foi possível iniciar a conexão com o WhatsApp");
       return false;
     } finally {
@@ -96,9 +96,9 @@ export function useInstanceOperations(organizationId: string | undefined) {
     setError(null);
     
     try {
-      console.log("Disconnecting WhatsApp instance:", instanceName);
+      console.log("Desconectando instância WhatsApp:", instanceName);
       const result = await messagingUtils.disconnectWhatsApp(instanceName);
-      console.log("Disconnect result:", result);
+      console.log("Resultado da desconexão:", result);
       
       if (result.success) {
         toast({
@@ -116,8 +116,44 @@ export function useInstanceOperations(organizationId: string | undefined) {
         return false;
       }
     } catch (error) {
-      console.error("Error disconnecting WhatsApp:", error);
+      console.error("Erro ao desconectar WhatsApp:", error);
       setError("Não foi possível desconectar o WhatsApp");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const restartWhatsApp = async (instanceName: string) => {
+    if (!instanceName) return false;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log("Reiniciando instância WhatsApp:", instanceName);
+      // Esse método precisa ser adicionado ao messagingUtils
+      const result = await messagingUtils.whatsAppUtils.restartInstance(instanceName);
+      console.log("Resultado da reinicialização:", result);
+      
+      if (result.success) {
+        toast({
+          title: "WhatsApp reiniciado",
+          description: "O WhatsApp foi reiniciado com sucesso",
+        });
+        return true;
+      } else {
+        setError(result.message || "Não foi possível reiniciar o WhatsApp");
+        toast({
+          title: "Erro ao reiniciar",
+          description: result.message || "Não foi possível reiniciar o WhatsApp",
+          variant: "destructive"
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Erro ao reiniciar WhatsApp:", error);
+      setError("Não foi possível reiniciar o WhatsApp");
       return false;
     } finally {
       setLoading(false);
@@ -130,6 +166,7 @@ export function useInstanceOperations(organizationId: string | undefined) {
     createInstance,
     connectWhatsApp,
     disconnectWhatsApp,
+    restartWhatsApp,
     setError
   };
 }
