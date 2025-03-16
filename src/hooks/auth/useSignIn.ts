@@ -40,7 +40,7 @@ export function useSignIn() {
       // Tratamento especial para o administrador - bypass completo do fluxo regular
       if (isAdminUser) {
         console.log("Admin credentials detected, redirecting to admin panel");
-        navigate('/admin');
+        navigate('/admin', { replace: true });
         toast({
           title: "Login realizado com sucesso",
           description: "Bem-vindo!",
@@ -49,9 +49,20 @@ export function useSignIn() {
         return;
       }
 
-      // For regular users, we'll just redirect initially to minimize
-      // API calls, the full verification will happen on next render
-      navigate('/');
+      // For regular users, we'll check if the user profile is complete
+      const { data: userData } = await supabase
+        .from('users')
+        .select('first_name, organization_id')
+        .eq('id', authData.user.id)
+        .single();
+        
+      // Se o perfil não estiver completo, redirecione para a página de conclusão de perfil
+      if (!userData?.first_name || !userData?.organization_id) {
+        navigate('/complete-profile', { replace: true });
+      } else {
+        // Perfil está completo, redirecione para a página principal
+        navigate('/', { replace: true });
+      }
       
       toast({
         title: "Login realizado com sucesso",
