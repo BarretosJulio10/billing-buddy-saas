@@ -8,8 +8,10 @@ import { WhatsAppLoading } from "./whatsapp/WhatsAppLoading";
 import { WhatsAppCreateInstance } from "./whatsapp/WhatsAppCreateInstance";
 import { WhatsAppConnect } from "./whatsapp/WhatsAppConnect";
 import { WhatsAppConnectedView } from "./whatsapp/WhatsAppConnectedView";
+import { useToast } from "@/components/ui/use-toast";
 
 export function WhatsAppManager() {
+  const { toast } = useToast();
   const { organizationId } = useOrganization();
   
   const {
@@ -26,7 +28,16 @@ export function WhatsAppManager() {
   } = useWhatsAppInstance(organizationId);
 
   const handleSubmitInstance = async (values: { instanceName: string }) => {
-    await createInstance(values.instanceName);
+    try {
+      await createInstance(values.instanceName);
+    } catch (error) {
+      console.error("Erro ao criar instância:", error);
+      toast({
+        title: "Erro",
+        description: "Falha ao criar instância do WhatsApp. Tente novamente mais tarde.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Render appropriate content based on the current step

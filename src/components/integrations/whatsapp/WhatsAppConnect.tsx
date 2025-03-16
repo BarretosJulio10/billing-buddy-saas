@@ -2,8 +2,9 @@
 import { CardContent } from "@/components/ui/card";
 import { WhatsAppQRCode } from "../WhatsAppQRCode";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, QrCode, Info } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 import { WhatsAppInstance } from "@/utils/messaging";
+import { INTEGRATION_TYPE } from "@/utils/messaging/whatsapp/config";
 
 interface WhatsAppConnectProps {
   instance: WhatsAppInstance | null;
@@ -35,7 +36,7 @@ export function WhatsAppConnect({
           Instância <strong>{instance?.instanceName}</strong> criada com sucesso.
           Agora clique no botão abaixo para gerar o QR code e escaneie com seu WhatsApp para conectar.
           <div className="mt-2 text-xs text-gray-500">
-            Usando integração: <span className="font-mono bg-gray-100 px-1 py-0.5 rounded">WHATSAPP-BAILEYS</span>
+            Usando integração: <span className="font-mono bg-gray-100 px-1 py-0.5 rounded">{INTEGRATION_TYPE}</span>
           </div>
         </AlertDescription>
       </Alert>

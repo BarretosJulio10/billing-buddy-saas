@@ -1,4 +1,3 @@
-
 /**
  * WhatsApp Instance Manager
  * 
@@ -6,7 +5,7 @@
  */
 
 import { ConnectionResult, EvolutionAPIResponse, InstanceActionResult, QRCodeResult } from "../types";
-import { EVOLUTION_API_KEY, EVOLUTION_API_URL } from "./config";
+import { EVOLUTION_API_KEY, EVOLUTION_API_URL, INTEGRATION_TYPE } from "./config";
 
 export const instanceManager = {
   async createInstance(
@@ -26,18 +25,17 @@ export const instanceManager = {
           instanceName,
           token: organizationId,
           qrcode: true,
-          integration: "WHATSAPP-BAILEYS", // Especificando o tipo de integração
-          webhook: {
-            url: '',
-            enabled: false,
-          },
-          // Baseado na documentação da Evolution API
+          integration: INTEGRATION_TYPE,
           settings: {
             rejectCall: true,
             msgMaxChars: 1000,
             sendMsgDelay: 1500,
             disableReadReceipts: false,
-            disableTyping: false,
+            disableTyping: false
+          },
+          webhook: {
+            url: '',
+            enabled: false
           }
         })
       });
