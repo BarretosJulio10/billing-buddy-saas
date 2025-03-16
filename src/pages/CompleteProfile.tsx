@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -53,9 +52,9 @@ export default function CompleteProfile() {
     try {
       setIsLoading(true);
       
-      // Create organization using an RPC function to avoid RLS issues
+      // Create organization using the RPC function
       const dueDate = new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0];
-      const { data: orgIdResult, error: orgError } = await supabase.rpc(
+      const { data: orgId, error: orgError } = await supabase.rpc(
         'create_organization',
         {
           org_name: data.orgName,
@@ -69,11 +68,10 @@ export default function CompleteProfile() {
         throw orgError;
       }
       
-      if (!orgIdResult) {
+      if (!orgId) {
         throw new Error('Falha ao criar a organização');
       }
       
-      const orgId = orgIdResult as string;
       console.log('Organization created with ID:', orgId);
       
       // Update user profile using an RPC function to avoid RLS issues

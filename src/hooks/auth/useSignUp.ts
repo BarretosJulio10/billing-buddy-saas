@@ -35,33 +35,29 @@ export function useSignUp() {
       
       console.log('Auth user created:', authData.user.id);
       
-      // Create organization using service role connection to bypass RLS
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .insert({
-          name: orgName,
-          email: email,
-          subscription_due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
-          subscription_status: 'active',
-          blocked: false,
-          slug: orgName.toLowerCase().replace(/\s+/g, '-')
-        })
-        .select()
-        .single();
+      // Create organization using the RPC function
+      const { data: orgData, error: orgError } = await supabase.rpc(
+        'create_organization',
+        {
+          org_name: orgName,
+          org_email: email,
+          due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0]
+        }
+      );
         
       if (orgError) {
         console.error('Organization creation error:', orgError);
         throw orgError;
       }
       
-      console.log('Organization created:', orgData.id);
+      console.log('Organization created:', orgData);
       
       // Create user profile using a simplified approach to avoid RLS recursion
       const { error: userError } = await supabase.rpc(
         'create_user_profile',
         {
           user_id: authData.user.id,
-          org_id: orgData.id,
+          org_id: orgData,
           user_role: 'admin',
           user_email: email
         }

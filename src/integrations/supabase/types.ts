@@ -347,6 +347,7 @@ export type Database = {
           name: string
           phone: string | null
           primary_color: string | null
+          slug: string | null
           subscription_amount: number | null
           subscription_due_date: string | null
           subscription_status: string | null
@@ -365,6 +366,7 @@ export type Database = {
           name: string
           phone?: string | null
           primary_color?: string | null
+          slug?: string | null
           subscription_amount?: number | null
           subscription_due_date?: string | null
           subscription_status?: string | null
@@ -383,6 +385,7 @@ export type Database = {
           name?: string
           phone?: string | null
           primary_color?: string | null
+          slug?: string | null
           subscription_amount?: number | null
           subscription_due_date?: string | null
           subscription_status?: string | null
