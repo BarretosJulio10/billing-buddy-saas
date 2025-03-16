@@ -7,7 +7,7 @@
  */
 
 import { messagingUtils as newMessagingUtils } from './messaging';
-export { WhatsAppInstance } from './messaging';
+export type { WhatsAppInstance } from './messaging';
 
 // Export all the same functions and objects from the new structure
 export const messagingUtils = newMessagingUtils;

@@ -1,4 +1,3 @@
-
 /**
  * WhatsApp Utilities
  * 
@@ -104,7 +103,7 @@ export const whatsAppUtils = {
       };
     }
   },
-
+  
   async sendMessage(
     phoneNumber: string,
     message: string,
