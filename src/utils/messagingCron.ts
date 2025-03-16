@@ -13,7 +13,7 @@ import { createMessageFromTemplate } from './messageTemplates';
 import { messagingUtils } from './messagingUtils';
 
 // Simulated function to run the cron job
-export const runMessagingCron = async () => {
+export const runMessagingCron = async (organizationId: string) => {
   try {
     // In a real system, this would be an RPC call to a stored procedure
     // that returns pending messages
@@ -50,6 +50,16 @@ export const runMessagingCron = async () => {
     const whatsappSettings = await messagingSettingsApi.getByChannel('whatsapp');
     const telegramSettings = await messagingSettingsApi.getByChannel('telegram');
 
+    // Get the WhatsApp instance name for the organization
+    const whatsappInstanceName = `org_${organizationId}`;
+
+    // Check if WhatsApp is connected for this organization
+    let whatsappConnected = false;
+    if (whatsappSettings && whatsappSettings.is_active) {
+      const connectionStatus = await messagingUtils.checkWhatsAppConnection(whatsappInstanceName);
+      whatsappConnected = connectionStatus.connected;
+    }
+
     // Process each pending message
     for (const pendingMessage of pendingMessages) {
       // Format the message with template variables
@@ -71,13 +81,14 @@ export const runMessagingCron = async () => {
       let channel = '';
       let error = null;
 
-      // Try WhatsApp if configured
-      if (whatsappSettings && whatsappSettings.is_active) {
+      // Try WhatsApp if configured and connected
+      if (whatsappSettings && whatsappSettings.is_active && whatsappConnected) {
         try {
           channel = 'whatsapp';
           sendResult = await messagingUtils.sendWhatsAppMessage(
             pendingMessage.customer_phone,
-            messageText
+            messageText,
+            whatsappInstanceName
           );
           console.log('WhatsApp message sent successfully');
         } catch (err) {
@@ -138,13 +149,15 @@ export const runMessagingCron = async () => {
 export const testMessagingConfiguration = async (
   channel: 'whatsapp' | 'telegram',
   recipient: string,
-  message: string
+  message: string,
+  organizationId: string
 ) => {
   try {
     let result;
     
     if (channel === 'whatsapp') {
-      result = await messagingUtils.sendWhatsAppMessage(recipient, message);
+      const instanceName = `org_${organizationId}`;
+      result = await messagingUtils.sendWhatsAppMessage(recipient, message, instanceName);
     } else if (channel === 'telegram') {
       result = await messagingUtils.sendTelegramMessage(recipient, message);
     } else {

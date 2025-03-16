@@ -7,7 +7,7 @@ import {
   TabsTrigger 
 } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { WhatsAppQRScanner } from "@/components/integrations/WhatsAppQRScanner";
+import { WhatsAppManager } from "@/components/integrations/WhatsAppManager";
 import { TelegramConnector } from "@/components/integrations/TelegramConnector";
 import { PaymentGatewayForm } from "@/components/integrations/PaymentGatewayForm";
 import { Badge } from "@/components/ui/badge";
@@ -53,10 +53,7 @@ const Settings = () => {
             </div>
 
             <TabsContent value="whatsapp" className="mt-4">
-              <WhatsAppQRScanner 
-                apiEndpoint="/api/whatsapp/connect" 
-                onSuccess={() => console.log("WhatsApp conectado com sucesso")}
-              />
+              <WhatsAppManager />
             </TabsContent>
 
             <TabsContent value="telegram" className="mt-4">
