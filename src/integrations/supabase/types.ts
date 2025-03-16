@@ -599,6 +599,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_current_user_organization: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_pending_messages: {
         Args: {
           p_org_id: string
