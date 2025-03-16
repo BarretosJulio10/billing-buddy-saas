@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
-import { useWhatsAppInstance } from "@/hooks/useWhatsAppInstance";
+import { useWhatsAppInstance } from "@/hooks/whatsapp/useWhatsAppInstance";
 import { WhatsAppInstanceForm } from "./WhatsAppInstanceForm";
 import { WhatsAppQRCode } from "./WhatsAppQRCode";
 import { WhatsAppConnected } from "./WhatsAppConnected";
