@@ -6,10 +6,10 @@
  */
 
 export * from './types';
-export * from './whatsAppUtils';
+export * from './whatsapp';
 export * from './telegramUtils';
 
-import { whatsAppUtils } from './whatsAppUtils';
+import { whatsAppUtils } from './whatsapp';
 import { telegramUtils } from './telegramUtils';
 import { 
   WhatsAppInstance,
