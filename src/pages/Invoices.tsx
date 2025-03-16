@@ -12,12 +12,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
+import { InvoiceFormData } from "@/components/invoices/types";
 
 const Invoices = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleAddInvoice = (data: any) => {
+  const handleAddInvoice = (data: InvoiceFormData) => {
     // This will be integrated with Supabase later
     toast({
       title: "Fatura criada",
@@ -53,6 +54,6 @@ const Invoices = () => {
       <InvoiceTable />
     </div>
   );
-};
+}
 
 export default Invoices;

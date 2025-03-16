@@ -1,7 +1,2 @@
-
-export { CustomerField } from "./CustomerField";
-export { AmountField } from "./AmountField";
-export { DescriptionField } from "./DescriptionField";
-export { DueDateField } from "./DueDateField";
-export { PaymentMethodField } from "./PaymentMethodField";
-export { MessageTemplateField } from "./MessageTemplateField";
+// This file is kept to maintain current imports but is now empty
+// New form fields are imported from @/components/form/fields
