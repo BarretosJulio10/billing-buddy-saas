@@ -25,14 +25,6 @@ export const instanceManager = {
           instanceName,
           token: organizationId,
           qrcode: true,
-          integration: INTEGRATION_TYPE,
-          settings: {
-            rejectCall: true,
-            msgMaxChars: 1000,
-            sendMsgDelay: 1500,
-            disableReadReceipts: false,
-            disableTyping: false
-          },
           webhook: {
             url: '',
             enabled: false
