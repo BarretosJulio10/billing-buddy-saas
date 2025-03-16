@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -94,11 +95,14 @@ export default function CompleteProfile() {
       await refetchUserData();
       
       toast({
-        title: "Perfil completado",
-        description: "Seu perfil foi atualizado com sucesso",
+        title: "Perfil completo",
+        description: "Seu perfil foi atualizado com sucesso. Redirecionando para o painel da empresa...",
       });
       
-      navigate('/');
+      // Fechando o popup e redirecionando para o painel da empresa após um breve delay
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
     } catch (error: any) {
       console.error('Profile completion error:', error);
       toast({
