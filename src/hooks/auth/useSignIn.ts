@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchUserData } from './authUtils';
 
 export function useSignIn() {
   const navigate = useNavigate();
@@ -50,30 +49,53 @@ export function useSignIn() {
         return;
       }
 
-      // Para usuários regulares, buscar dados do usuário para verificar a conclusão do perfil
-      const { appUser, organization, isAdmin } = await fetchUserData(authData.user.id);
-      
-      if (!appUser) {
-        // Usuário precisa completar o perfil
-        console.log("User needs to complete profile");
+      // Para usuários regulares, tentativa de buscar dados do usuário
+      try {
+        // Buscar usuário da tabela users
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*, organizations:organization_id(id, blocked)')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+        
+        if (userError) {
+          console.error('Error fetching user data:', userError);
+          // Se o erro for de permissão ou usuário não encontrado, redirecionar para completar perfil
+          navigate('/complete-profile');
+          setLoading(false);
+          return;
+        }
+
+        if (!userData) {
+          // Usuário precisa completar o perfil
+          console.log("User needs to complete profile");
+          navigate('/complete-profile');
+          setLoading(false);
+          return;
+        }
+
+        const isAdmin = userData.role === 'admin';
+        const isBlocked = userData.organizations?.blocked || false;
+
+        if (isBlocked && !isAdmin) {
+          console.log("User account is blocked");
+          navigate('/blocked');
+          setLoading(false);
+          return;
+        }
+
+        // Redirecionar para o painel apropriado
+        navigate('/');
+        
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Bem-vindo de volta!",
+        });
+      } catch (error: any) {
+        console.error('Error processing user data after auth:', error);
+        // Falha segura - redirecionar para completar perfil
         navigate('/complete-profile');
-        setLoading(false);
-        return;
       }
-
-      if (!organization) {
-        console.error("Organization not found for user:", appUser.id);
-        throw new Error("Organization data not found. Please contact support.");
-      }
-
-      // Apenas usuários regulares devem chegar aqui - sempre redirecionar para o painel da empresa
-      console.log("Regular user detected, redirecting to company panel");
-      navigate('/');
-
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo de volta!",
-      });
     } catch (error: any) {
       console.error('Full login error details:', error);
       toast({

@@ -13,7 +13,7 @@ interface OrganizationContextType {
   error: string | null;
   isAdmin: boolean;
   subscriptionDetails: SubscriptionDetails | null;
-  organizationId: string | null; // Added organizationId property
+  organizationId: string | null;
   refreshOrganization: () => Promise<void>;
   updateOrganizationSettings: (updates: Partial<Organization>) => Promise<boolean>;
 }
@@ -26,7 +26,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subscriptionDetails, setSubscriptionDetails] = useState<SubscriptionDetails | null>(null);
-  const { user: authUser, loading: authLoading } = useAuth(); // Fixed the property name from isLoading to loading
+  const { user: authUser, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -92,6 +92,12 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
 
+      // Check if we're on the login page
+      if (window.location.pathname === '/login') {
+        setLoading(false);
+        return;
+      }
+
       // Fetch user data with organization information
       const { data: userData, error: userError } = await supabase
         .from('users')
@@ -105,19 +111,31 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
           updated_at
         `)
         .eq('id', authUser.id)
-        .single();
+        .maybeSingle();
 
       if (userError) {
         console.error('Error fetching user data:', userError);
         setError('Failed to load user data');
         setLoading(false);
+        
+        // If this is not the login or complete profile page, redirect
+        if (window.location.pathname !== '/login' && 
+            window.location.pathname !== '/complete-profile' &&
+            window.location.pathname !== '/blocked') {
+          navigate('/complete-profile');
+        }
         return;
       }
 
       if (!userData || !userData.organization_id) {
         console.log('User needs to complete profile');
         setLoading(false);
-        navigate('/complete-profile');
+        
+        // If this is not the login or complete profile page, redirect
+        if (window.location.pathname !== '/login' && 
+            window.location.pathname !== '/complete-profile') {
+          navigate('/complete-profile');
+        }
         return;
       }
 
@@ -126,11 +144,18 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
         .from('organizations')
         .select('*')
         .eq('id', userData.organization_id)
-        .single();
+        .maybeSingle();
 
       if (orgError) {
         console.error('Error fetching organization data:', orgError);
         setError('Failed to load organization data');
+        setLoading(false);
+        return;
+      }
+
+      if (!orgData) {
+        console.error('Organization not found:', userData.organization_id);
+        setError('Organization not found');
         setLoading(false);
         return;
       }
@@ -207,10 +232,18 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
 
   // Effect to load organization data when auth state changes
   useEffect(() => {
+    // Skip loading on login page
+    if (window.location.pathname === '/login' || 
+        window.location.pathname === '/complete-profile' ||
+        window.location.pathname === '/blocked') {
+      setLoading(false);
+      return;
+    }
+    
     if (!authLoading) {
       fetchOrganizationData();
     }
-  }, [authUser, authLoading]);
+  }, [authUser, authLoading, window.location.pathname]);
 
   return (
     <OrganizationContext.Provider
@@ -221,7 +254,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
         error,
         isAdmin: organization?.isAdmin || false,
         subscriptionDetails,
-        organizationId: organization?.id || null, // Added organizationId to the context value
+        organizationId: organization?.id || null,
         refreshOrganization,
         updateOrganizationSettings,
       }}

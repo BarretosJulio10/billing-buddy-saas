@@ -51,7 +51,7 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
       setLoginError("Credenciais de login inválidas. Por favor, verifique seu email e senha.");
       toast({
         title: "Erro ao fazer login",
-        description: "Credenciais inválidas. Verifique seu email e senha.",
+        description: error.message || "Credenciais inválidas. Verifique seu email e senha.",
         variant: "destructive",
       });
     } finally {
