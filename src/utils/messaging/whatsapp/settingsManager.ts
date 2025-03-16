@@ -86,12 +86,18 @@ export const settingsManager = {
         };
       }
       
-      // Corrigido para acessar as propriedades do objeto JSON retornado pela função
+      // Corretamente transformar o objeto JSON retornado para o formato esperado
+      const instanceData = data as {
+        instance_name: string;
+        status: string;
+        qrcode: string | null;
+      };
+      
       return {
         success: true,
-        instanceName: data.instance_name,
-        status: data.status,
-        qrCode: data.qrcode
+        instanceName: instanceData.instance_name,
+        status: instanceData.status,
+        qrCode: instanceData.qrcode
       };
     } catch (error) {
       console.error('Erro ao obter configurações do WhatsApp:', error);
