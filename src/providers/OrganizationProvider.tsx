@@ -1,9 +1,11 @@
 
 import { createContext, useContext, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { Organization } from '@/types/organization';
 
 interface OrganizationContextType {
   organizationId: string | null;
+  organization: Organization | null;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
@@ -13,6 +15,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   
   const value = {
     organizationId: organization?.id || null,
+    organization: organization,
   };
 
   return (

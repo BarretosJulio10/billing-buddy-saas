@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   AreaChart,
@@ -19,11 +18,11 @@ type ChartData = { name: string; total: number }[];
 export function InvoiceTimelineChart() {
   const [data, setData] = useState<ChartData>([]);
   const [loading, setLoading] = useState(true);
-  const { organization } = useOrganization();
+  const { organizationId } = useOrganization();
   
   useEffect(() => {
     async function fetchInvoiceTimeline() {
-      if (!organization) return;
+      if (!organizationId) return;
       
       try {
         setLoading(true);
@@ -35,7 +34,7 @@ export function InvoiceTimelineChart() {
         const { data: invoices, error } = await supabase
           .from('invoices')
           .select('amount, paid_at')
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('status', 'paid')
           .is('deleted_at', null)
           .gte('paid_at', startDate.toISOString())
@@ -82,7 +81,7 @@ export function InvoiceTimelineChart() {
     }
     
     fetchInvoiceTimeline();
-  }, [organization]);
+  }, [organizationId]);
 
   if (loading) {
     return (

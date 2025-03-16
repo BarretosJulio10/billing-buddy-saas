@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -20,11 +19,11 @@ type Invoice = {
 export function RecentInvoices() {
   const [recentInvoices, setRecentInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
-  const { organization } = useOrganization();
+  const { organizationId } = useOrganization();
 
   useEffect(() => {
     async function fetchRecentInvoices() {
-      if (!organization) return;
+      if (!organizationId) return;
       
       try {
         setLoading(true);
@@ -37,7 +36,7 @@ export function RecentInvoices() {
             created_at,
             customers(name)
           `)
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .is('deleted_at', null)
           .order('created_at', { ascending: false })
           .limit(5);
@@ -64,7 +63,7 @@ export function RecentInvoices() {
     }
 
     fetchRecentInvoices();
-  }, [organization]);
+  }, [organizationId]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,11 +12,11 @@ type StatusCount = {
 export function StatusDistributionChart() {
   const [data, setData] = useState<StatusCount[]>([]);
   const [loading, setLoading] = useState(true);
-  const { organization } = useOrganization();
+  const { organizationId } = useOrganization();
   
   useEffect(() => {
     async function fetchInvoiceStats() {
-      if (!organization) return;
+      if (!organizationId) return;
       
       try {
         setLoading(true);
@@ -26,7 +25,7 @@ export function StatusDistributionChart() {
         const { count: paidCount, error: paidError } = await supabase
           .from('invoices')
           .select('*', { count: 'exact', head: true })
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('status', 'paid')
           .is('deleted_at', null);
         
@@ -36,7 +35,7 @@ export function StatusDistributionChart() {
         const { count: pendingCount, error: pendingError } = await supabase
           .from('invoices')
           .select('*', { count: 'exact', head: true })
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('status', 'pending')
           .is('deleted_at', null);
         
@@ -46,7 +45,7 @@ export function StatusDistributionChart() {
         const { count: overdueCount, error: overdueError } = await supabase
           .from('invoices')
           .select('*', { count: 'exact', head: true })
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('status', 'overdue')
           .is('deleted_at', null);
         
@@ -56,7 +55,7 @@ export function StatusDistributionChart() {
         const { count: canceledCount, error: canceledError } = await supabase
           .from('invoices')
           .select('*', { count: 'exact', head: true })
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('status', 'canceled')
           .is('deleted_at', null);
         
@@ -78,7 +77,7 @@ export function StatusDistributionChart() {
     }
     
     fetchInvoiceStats();
-  }, [organization]);
+  }, [organizationId]);
 
   if (loading) {
     return (

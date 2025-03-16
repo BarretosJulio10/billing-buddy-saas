@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -19,18 +18,18 @@ type Customer = {
 export function RecentCustomers() {
   const [recentCustomers, setRecentCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  const { organization } = useOrganization();
+  const { organizationId } = useOrganization();
 
   useEffect(() => {
     async function fetchRecentCustomers() {
-      if (!organization) return;
+      if (!organizationId) return;
       
       try {
         setLoading(true);
         const { data, error } = await supabase
           .from('customers')
           .select('id, name, is_active, created_at')
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .is('deleted_at', null)
           .order('created_at', { ascending: false })
           .limit(5);
@@ -56,7 +55,7 @@ export function RecentCustomers() {
     }
 
     fetchRecentCustomers();
-  }, [organization]);
+  }, [organizationId]);
 
   return (
     <Card className="shadow-md">

@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Users, 
@@ -53,11 +52,11 @@ export function OverviewStats() {
     conversionChange: 0,
     messagesChange: 0
   });
-  const { organization } = useOrganization();
+  const { organizationId } = useOrganization();
 
   useEffect(() => {
     async function fetchStats() {
-      if (!organization) return;
+      if (!organizationId) return;
       
       try {
         setLoading(true);
@@ -66,7 +65,7 @@ export function OverviewStats() {
         const { data: customersData, error: customersError } = await supabase
           .from('customers')
           .select('id, created_at')
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('is_active', true)
           .is('deleted_at', null);
         
@@ -83,7 +82,7 @@ export function OverviewStats() {
         const { data: openInvoicesData, error: openInvoicesError } = await supabase
           .from('invoices')
           .select('id, created_at')
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('status', 'pending')
           .is('deleted_at', null);
         
@@ -98,7 +97,7 @@ export function OverviewStats() {
         const { data: overdueInvoicesData, error: overdueInvoicesError } = await supabase
           .from('invoices')
           .select('id, created_at')
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('status', 'overdue')
           .is('deleted_at', null);
         
@@ -113,7 +112,7 @@ export function OverviewStats() {
         const { data: paidInvoicesData, error: paidInvoicesError } = await supabase
           .from('invoices')
           .select('id, amount, paid_at')
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('status', 'paid')
           .is('deleted_at', null);
         
@@ -135,7 +134,7 @@ export function OverviewStats() {
         const { data: messagesData, error: messagesError } = await supabase
           .from('message_history')
           .select('id, created_at')
-          .eq('organization_id', organization.id)
+          .eq('organization_id', organizationId)
           .eq('status', 'sent');
         
         if (messagesError) throw messagesError;
@@ -176,7 +175,7 @@ export function OverviewStats() {
     }
     
     fetchStats();
-  }, [organization]);
+  }, [organizationId]);
 
   // Format items for display
   const statsItems: StatsItem[] = [
