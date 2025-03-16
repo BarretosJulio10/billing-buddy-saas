@@ -1,13 +1,13 @@
 
 import { useOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { RefreshCw, Loader2 } from "lucide-react";
 import { useWhatsAppInstance } from "@/hooks/whatsapp/useWhatsAppInstance";
-import { WhatsAppInstanceForm } from "./WhatsAppInstanceForm";
-import { WhatsAppQRCode } from "./WhatsAppQRCode";
-import { WhatsAppConnected } from "./WhatsAppConnected";
+import { WhatsAppLoading } from "./whatsapp/WhatsAppLoading";
+import { WhatsAppCreateInstance } from "./whatsapp/WhatsAppCreateInstance";
+import { WhatsAppConnect } from "./whatsapp/WhatsAppConnect";
+import { WhatsAppConnectedView } from "./whatsapp/WhatsAppConnectedView";
 
 export function WhatsAppManager() {
   const { organizationId } = useOrganization();
@@ -28,26 +28,47 @@ export function WhatsAppManager() {
     await createInstance(values.instanceName);
   };
 
-  // Render loading state
-  if (loading && step === 'check') {
-    return (
-      <Card className="border shadow-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>WhatsApp</CardTitle>
-              <CardDescription>Conecte sua conta do WhatsApp para enviar mensagens</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Render appropriate content based on the current step
+  const renderContent = () => {
+    if (loading && step === 'check') {
+      return <WhatsAppLoading />;
+    }
+
+    if (step === 'create') {
+      return (
+        <WhatsAppCreateInstance 
+          defaultInstanceName={organizationId ? `org_${organizationId.substring(0, 8)}` : ""}
+          loading={loading}
+          error={error}
+          onSubmit={handleSubmitInstance}
+        />
+      );
+    }
+    
+    if (step === 'connect') {
+      return (
+        <WhatsAppConnect
+          instance={instance}
+          loading={loading}
+          error={error}
+          onConnect={connectWhatsApp}
+        />
+      );
+    }
+    
+    if (step === 'connected' && instance) {
+      return (
+        <WhatsAppConnectedView
+          instance={instance}
+          loading={loading}
+          error={error}
+          onDisconnect={disconnectWhatsApp}
+        />
+      );
+    }
+
+    return null;
+  };
 
   return (
     <Card className="border shadow-sm">
@@ -71,39 +92,7 @@ export function WhatsAppManager() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Erro</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        {step === 'create' && (
-          <WhatsAppInstanceForm 
-            defaultInstanceName={organizationId ? `org_${organizationId.substring(0, 8)}` : ""}
-            loading={loading}
-            onSubmit={handleSubmitInstance}
-          />
-        )}
-        
-        {step === 'connect' && (
-          <WhatsAppQRCode
-            qrCode={instance?.qrCode}
-            loading={loading}
-            onConnect={connectWhatsApp}
-          />
-        )}
-        
-        {step === 'connected' && instance && (
-          <WhatsAppConnected
-            instance={instance}
-            loading={loading}
-            onDisconnect={disconnectWhatsApp}
-          />
-        )}
-      </CardContent>
+      {renderContent()}
     </Card>
   );
 }
