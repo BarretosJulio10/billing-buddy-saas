@@ -11,14 +11,7 @@ export * from './telegramUtils';
 
 import { whatsAppUtils } from './whatsapp';
 import { telegramUtils } from './telegramUtils';
-import { 
-  WhatsAppInstance,
-  InstanceSettingsResult,
-  InstanceActionResult,
-  ConnectionResult,
-  QRCodeResult,
-  MessageSendResult
-} from './types';
+import { WhatsAppInstance, InstanceSettings, InstanceActionResult, ConnectionResult, QRCodeResult, MessageSendResult } from './types';
 
 export const messagingUtils = {
   // WhatsApp instance management

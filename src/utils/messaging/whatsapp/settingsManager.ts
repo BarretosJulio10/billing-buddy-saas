@@ -17,10 +17,8 @@ export const settingsManager = {
       console.log(`Salvando configurações para instância ${instanceName} (org: ${organizationId})`);
       
       // Verificar se já existe uma configuração para esta organização
-      const { data: existingSettings, error: queryError } = await supabase.rpc(
-        'get_whatsapp_instance',
-        { org_id: organizationId }
-      );
+      const { data: existingSettings, error: queryError } = await supabase
+        .rpc('get_whatsapp_instance', { org_id: organizationId });
       
       if (queryError) {
         console.error('Erro ao verificar configurações existentes:', queryError);
@@ -31,25 +29,21 @@ export const settingsManager = {
       
       if (existingSettings) {
         // Atualizar configurações existentes
-        const { data, error } = await supabase.rpc(
-          'update_whatsapp_instance',
-          { 
+        const { data, error } = await supabase
+          .rpc('update_whatsapp_instance', { 
             org_id: organizationId,
             instance_name_param: instanceName
-          }
-        );
+          });
         
         if (error) throw error;
         result = data;
       } else {
         // Inserir novas configurações
-        const { data, error } = await supabase.rpc(
-          'create_whatsapp_instance',
-          { 
+        const { data, error } = await supabase
+          .rpc('create_whatsapp_instance', { 
             org_id: organizationId,
             instance_name_param: instanceName
-          }
-        );
+          });
         
         if (error) throw error;
         result = data;
@@ -74,10 +68,8 @@ export const settingsManager = {
     try {
       console.log(`Obtendo configurações da instância para org ${organizationId}`);
       
-      const { data, error } = await supabase.rpc(
-        'get_whatsapp_instance',
-        { org_id: organizationId }
-      );
+      const { data, error } = await supabase
+        .rpc('get_whatsapp_instance', { org_id: organizationId });
       
       if (error) {
         console.error('Erro ao obter configurações do WhatsApp:', error);
@@ -94,6 +86,7 @@ export const settingsManager = {
         };
       }
       
+      // Corrigido para acessar as propriedades do objeto JSON retornado pela função
       return {
         success: true,
         instanceName: data.instance_name,

@@ -585,6 +585,20 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_whatsapp_instance: {
+        Args: {
+          org_id: string
+          instance_name_param: string
+        }
+        Returns: Json
+      }
+      delete_whatsapp_instance: {
+        Args: {
+          org_id: string
+          instance_name_param: string
+        }
+        Returns: boolean
+      }
       get_pending_messages: {
         Args: {
           p_org_id: string
@@ -616,6 +630,12 @@ export type Database = {
       get_user_organization_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_whatsapp_instance: {
+        Args: {
+          org_id: string
+        }
+        Returns: Json
       }
       is_admin_user: {
         Args: Record<PropertyKey, never>
@@ -650,6 +670,22 @@ export type Database = {
           user_role: string
         }
         Returns: undefined
+      }
+      update_whatsapp_instance: {
+        Args: {
+          org_id: string
+          instance_name_param: string
+        }
+        Returns: Json
+      }
+      update_whatsapp_instance_status: {
+        Args: {
+          instance_name_param: string
+          status_param: string
+          qrcode_param?: string
+          number_param?: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
