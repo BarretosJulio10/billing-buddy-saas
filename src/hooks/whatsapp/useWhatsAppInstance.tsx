@@ -57,7 +57,6 @@ export function useWhatsAppInstance(organizationId: string | undefined) {
         
         if (result.needsQRCode) {
           console.log("Precisa obter QR code...");
-          // Call fetchQRCode without any arguments
           const qrResult = await fetchQRCode();
           console.log("Resultado do QR code:", qrResult);
           
@@ -131,7 +130,6 @@ export function useWhatsAppInstance(organizationId: string | undefined) {
     const success = await connectWhatsApp(instance.instanceName);
     
     if (success) {
-      // Call fetchQRCode without any arguments
       const qrResult = await fetchQRCode();
       console.log("Resultado do QR code na conexão:", qrResult);
       
