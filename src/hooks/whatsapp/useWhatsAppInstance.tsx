@@ -57,7 +57,7 @@ export function useWhatsAppInstance(organizationId: string | undefined) {
         
         if (result.needsQRCode) {
           console.log("Precisa obter QR code...");
-          // Corrigido: Removido o argumento passado para fetchQRCode
+          // Removed the argument passed to fetchQRCode
           const qrResult = await fetchQRCode();
           console.log("Resultado do QR code:", qrResult);
           
@@ -131,7 +131,7 @@ export function useWhatsAppInstance(organizationId: string | undefined) {
     const success = await connectWhatsApp(instance.instanceName);
     
     if (success) {
-      // Corrigido: Removido o argumento passado para fetchQRCode
+      // Removed the argument passed to fetchQRCode
       const qrResult = await fetchQRCode();
       console.log("Resultado do QR code na conexão:", qrResult);
       

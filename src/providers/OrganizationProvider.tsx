@@ -13,6 +13,7 @@ interface OrganizationContextType {
   error: string | null;
   isAdmin: boolean;
   subscriptionDetails: SubscriptionDetails | null;
+  organizationId: string | null; // Added organizationId property
   refreshOrganization: () => Promise<void>;
   updateOrganizationSettings: (updates: Partial<Organization>) => Promise<boolean>;
 }
@@ -25,7 +26,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subscriptionDetails, setSubscriptionDetails] = useState<SubscriptionDetails | null>(null);
-  const { user: authUser, isLoading: authLoading } = useAuth();
+  const { user: authUser, loading: authLoading } = useAuth(); // Fixed the property name from isLoading to loading
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -220,6 +221,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
         error,
         isAdmin: organization?.isAdmin || false,
         subscriptionDetails,
+        organizationId: organization?.id || null, // Added organizationId to the context value
         refreshOrganization,
         updateOrganizationSettings,
       }}

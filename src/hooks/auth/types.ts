@@ -10,7 +10,7 @@ export type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, orgName: string) => Promise<boolean>;
   signOut: () => Promise<void>;
-  loading: boolean;
+  loading: boolean; // Changed from isLoading to loading
   isAdmin: boolean;
   isBlocked: boolean;
   subscriptionExpiringSoon: boolean;
