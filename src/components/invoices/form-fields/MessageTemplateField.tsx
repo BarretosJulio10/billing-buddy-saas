@@ -1,53 +1,28 @@
 
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectField } from "@/components/form/fields";
 import { UseFormReturn } from "react-hook-form";
-import { InvoiceFormData, mockTemplates } from "../types";
+import { InvoiceFormData } from "../types";
+import { useInvoiceData } from "@/hooks/useInvoiceData";
 
 interface MessageTemplateFieldProps {
   form: UseFormReturn<InvoiceFormData>;
 }
 
 export function MessageTemplateField({ form }: MessageTemplateFieldProps) {
+  const { templates, isLoading } = useInvoiceData();
+  
+  const templateOptions = templates.map(template => ({
+    value: template.id,
+    label: template.name,
+  }));
+
   return (
-    <FormField
-      control={form.control}
-      name="messageTemplateId"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Modelo de Mensagem</FormLabel>
-          <Select
-            onValueChange={field.onChange}
-            defaultValue={field.value}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um modelo" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {mockTemplates.map((template) => (
-                <SelectItem key={template.id} value={template.id}>
-                  {template.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
+    <SelectField 
+      form={form} 
+      name="messageTemplateId" 
+      label="Modelo de Mensagem" 
+      options={templateOptions}
+      placeholder={isLoading ? "Carregando modelos..." : "Selecione um modelo"}
     />
   );
 }
