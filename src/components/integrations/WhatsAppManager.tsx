@@ -76,7 +76,7 @@ export function WhatsAppManager() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>WhatsApp</CardTitle>
-            <CardDescription>Conecte sua conta do WhatsApp para enviar mensagens</CardDescription>
+            <CardDescription>Conecte sua conta do WhatsApp para enviar mensagens para seus clientes</CardDescription>
           </div>
           <Button 
             variant="outline" 

@@ -39,9 +39,13 @@ export function WhatsAppInstanceForm({ defaultInstanceName, loading, onSubmit }:
           name="instanceName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nome da Instância</FormLabel>
+              <FormLabel className="text-base font-medium">Nome da Instância WhatsApp</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="ex: minha_empresa" />
+                <Input 
+                  {...field} 
+                  placeholder="ex: minha_empresa" 
+                  className="text-base h-12 border-2 focus:border-primary"
+                />
               </FormControl>
               <FormDescription>
                 Use apenas letras, números e underscores. Este será o identificador único da sua instância do WhatsApp.
@@ -50,14 +54,14 @@ export function WhatsAppInstanceForm({ defaultInstanceName, loading, onSubmit }:
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} className="w-full">
+        <Button type="submit" disabled={loading} className="w-full h-12 text-base font-medium">
           {loading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Criando...
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Criando instância...
             </>
           ) : (
-            "Criar Instância"
+            "Criar Instância WhatsApp"
           )}
         </Button>
       </form>
