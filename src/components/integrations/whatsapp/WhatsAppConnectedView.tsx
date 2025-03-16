@@ -1,7 +1,8 @@
 
 import { CardContent } from "@/components/ui/card";
 import { WhatsAppConnected } from "../WhatsAppConnected";
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { WhatsAppInstance } from "@/utils/messaging";
 
 interface WhatsAppConnectedViewProps {
