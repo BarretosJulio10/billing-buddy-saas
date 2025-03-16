@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
 interface WhatsAppQRCodeProps {
@@ -49,14 +49,17 @@ export function WhatsAppQRCode({ qrCode, loading, onConnect }: WhatsAppQRCodePro
 
   return (
     <div className="flex justify-center">
-      <Button onClick={onConnect} disabled={loading} className="w-full max-w-xs">
+      <Button onClick={onConnect} disabled={loading} className="w-full max-w-xs h-12 text-base">
         {loading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Preparando...
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Gerando QR Code...
           </>
         ) : (
-          "Conectar WhatsApp"
+          <>
+            <QrCode className="mr-2 h-5 w-5" />
+            Gerar QR Code para Conexão
+          </>
         )}
       </Button>
     </div>

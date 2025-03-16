@@ -2,7 +2,7 @@
 import { CardContent } from "@/components/ui/card";
 import { WhatsAppQRCode } from "../WhatsAppQRCode";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, QrCode, Info } from "lucide-react";
 import { WhatsAppInstance } from "@/utils/messaging";
 
 interface WhatsAppConnectProps {
@@ -28,19 +28,29 @@ export function WhatsAppConnect({
         </Alert>
       )}
       
-      <div className="space-y-2 mb-4">
-        <h3 className="text-sm font-medium">Conectar WhatsApp</h3>
-        <p className="text-sm text-muted-foreground">
+      <Alert variant="info" className="bg-blue-50">
+        <Info className="h-4 w-4" />
+        <AlertTitle>Passo 2: Conectar WhatsApp</AlertTitle>
+        <AlertDescription>
           Instância <strong>{instance?.instanceName}</strong> criada com sucesso.
-          Agora escaneie o código QR com seu WhatsApp para conectar.
-        </p>
-      </div>
+          Agora clique no botão abaixo para gerar o QR code e escaneie com seu WhatsApp para conectar.
+        </AlertDescription>
+      </Alert>
       
-      <WhatsAppQRCode
-        qrCode={instance?.qrCode}
-        loading={loading}
-        onConnect={onConnect}
-      />
+      <div className="space-y-4 p-4 border rounded-md shadow-sm bg-white">
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium">Conectar WhatsApp</h3>
+          <p className="text-sm text-muted-foreground">
+            Clique no botão para gerar o QR code e escaneie-o com seu aplicativo WhatsApp.
+          </p>
+        </div>
+        
+        <WhatsAppQRCode
+          qrCode={instance?.qrCode}
+          loading={loading}
+          onConnect={onConnect}
+        />
+      </div>
     </CardContent>
   );
 }

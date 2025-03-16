@@ -3,7 +3,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
@@ -58,10 +58,13 @@ export function WhatsAppInstanceForm({ defaultInstanceName, loading, onSubmit }:
           {loading ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Criando instância...
+              Salvando nome da instância...
             </>
           ) : (
-            "Criar Instância WhatsApp"
+            <>
+              <Save className="mr-2 h-5 w-5" />
+              Salvar Nome da Instância
+            </>
           )}
         </Button>
       </form>

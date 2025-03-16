@@ -18,6 +18,7 @@ export function WhatsAppManager() {
     instance,
     error,
     step,
+    isInstanceSaved,
     createInstance,
     connectWhatsApp,
     disconnectWhatsApp,
@@ -41,6 +42,7 @@ export function WhatsAppManager() {
           loading={loading}
           error={error}
           onSubmit={handleSubmitInstance}
+          isInstanceSaved={isInstanceSaved}
         />
       );
     }

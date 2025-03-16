@@ -9,6 +9,7 @@ export function useWhatsAppInstance(organizationId: string | undefined) {
   const [instance, setInstance] = useState<WhatsAppInstance | null>(null);
   const [qrPollingActive, setQrPollingActive] = useState(false);
   const [step, setStep] = useState<'check' | 'create' | 'connect' | 'connected'>('check');
+  const [isInstanceSaved, setIsInstanceSaved] = useState(false);
 
   const { loading, error, createInstance, connectWhatsApp, disconnectWhatsApp, setError } = 
     useInstanceOperations(organizationId);
@@ -48,6 +49,7 @@ export function useWhatsAppInstance(organizationId: string | undefined) {
         status: 'disconnected'
       });
       
+      setIsInstanceSaved(true);
       setStep('connect');
     }
     
@@ -103,6 +105,7 @@ export function useWhatsAppInstance(organizationId: string | undefined) {
     if (result.success && result.instance) {
       setInstance(result.instance);
       setStep(result.step as 'connect' | 'connected');
+      setIsInstanceSaved(true);
       
       if (result.needsQRCode) {
         const qrResult = await fetchQRCode();
@@ -125,6 +128,7 @@ export function useWhatsAppInstance(organizationId: string | undefined) {
       
       if (result.step === 'create') {
         setInstance(null);
+        setIsInstanceSaved(false);
       }
     }
   };
@@ -135,6 +139,7 @@ export function useWhatsAppInstance(organizationId: string | undefined) {
     instance,
     error,
     step,
+    isInstanceSaved,
     createInstance: handleCreateInstance,
     connectWhatsApp: handleConnectWhatsApp,
     disconnectWhatsApp: handleDisconnectWhatsApp,
