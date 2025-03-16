@@ -81,11 +81,15 @@ export const messagingUtils = {
       
       if (error) throw error;
       
-      if (data && data.additional_config && data.additional_config.instanceName) {
-        return {
-          success: true,
-          instanceName: data.additional_config.instanceName
-        };
+      if (data && data.additional_config) {
+        // Fix type issues by handling additional_config properly
+        const config = data.additional_config as Record<string, any>;
+        if (config.instanceName) {
+          return {
+            success: true,
+            instanceName: config.instanceName as string
+          };
+        }
       }
       
       return {
