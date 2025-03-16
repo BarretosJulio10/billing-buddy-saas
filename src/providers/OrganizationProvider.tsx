@@ -92,8 +92,12 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
 
-      // Check if we're on the login page
-      if (window.location.pathname === '/login') {
+      // Skip loading on specific pages where organization data isn't needed yet
+      const currentPath = window.location.pathname;
+      const skipPaths = ['/login', '/complete-profile', '/blocked'];
+      
+      if (skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
+        console.log(`Skipping organization data fetch on ${currentPath}`);
         setLoading(false);
         return;
       }
@@ -118,10 +122,8 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
         setError('Failed to load user data');
         setLoading(false);
         
-        // If this is not the login or complete profile page, redirect
-        if (window.location.pathname !== '/login' && 
-            window.location.pathname !== '/complete-profile' &&
-            window.location.pathname !== '/blocked') {
+        // If this is not a special page, redirect to complete profile
+        if (!skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
           navigate('/complete-profile');
         }
         return;
@@ -131,9 +133,8 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
         console.log('User needs to complete profile');
         setLoading(false);
         
-        // If this is not the login or complete profile page, redirect
-        if (window.location.pathname !== '/login' && 
-            window.location.pathname !== '/complete-profile') {
+        // If this is not a special page, redirect to complete profile
+        if (!skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
           navigate('/complete-profile');
         }
         return;
@@ -168,7 +169,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       setSubscriptionDetails(extractSubscriptionDetails(mappedOrg));
 
       // Check if organization is blocked and subscription status
-      if (mappedOrg.blocked && window.location.pathname !== '/blocked') {
+      if (mappedOrg.blocked && currentPath !== '/blocked') {
         navigate('/blocked');
       }
 
@@ -232,10 +233,12 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
 
   // Effect to load organization data when auth state changes
   useEffect(() => {
-    // Skip loading on login page
-    if (window.location.pathname === '/login' || 
-        window.location.pathname === '/complete-profile' ||
-        window.location.pathname === '/blocked') {
+    // Skip loading on login, complete profile, and blocked pages
+    const currentPath = window.location.pathname;
+    const skipPaths = ['/login', '/complete-profile', '/blocked'];
+    
+    if (skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
+      console.log(`Skipping organization data initial fetch on ${currentPath}`);
       setLoading(false);
       return;
     }

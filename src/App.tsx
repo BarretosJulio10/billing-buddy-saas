@@ -53,15 +53,15 @@ function RequireAuth({ children, isAdminRequired = false }: { children: JSX.Elem
 }
 
 function RequireNoAuth({ children }: { children: JSX.Element }) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Carregando...</div>;
   }
 
   if (user) {
-    // Redirect to appropriate panel based on user role
-    if (isAdmin) {
+    // Primeiro verifique se é o admin
+    if (user.email === 'julioquintanilha@hotmail.com') {
       return <Navigate to="/admin" replace />;
     } else {
       return <Navigate to="/" replace />;

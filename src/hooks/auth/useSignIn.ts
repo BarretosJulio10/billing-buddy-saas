@@ -49,50 +49,19 @@ export function useSignIn() {
         return;
       }
 
-      // Para usuários regulares, tentativa de buscar dados do usuário
+      // Para usuários regulares, vamos apenas redirecionar inicialmente para minimizar 
+      // chamadas de API, a verificação completa acontecerá na próxima renderização
       try {
-        // Buscar usuário da tabela users
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*, organizations:organization_id(id, blocked)')
-          .eq('id', authData.user.id)
-          .maybeSingle();
-        
-        if (userError) {
-          console.error('Error fetching user data:', userError);
-          // Se o erro for de permissão ou usuário não encontrado, redirecionar para completar perfil
-          navigate('/complete-profile');
-          setLoading(false);
-          return;
-        }
-
-        if (!userData) {
-          // Usuário precisa completar o perfil
-          console.log("User needs to complete profile");
-          navigate('/complete-profile');
-          setLoading(false);
-          return;
-        }
-
-        const isAdmin = userData.role === 'admin';
-        const isBlocked = userData.organizations?.blocked || false;
-
-        if (isBlocked && !isAdmin) {
-          console.log("User account is blocked");
-          navigate('/blocked');
-          setLoading(false);
-          return;
-        }
-
-        // Redirecionar para o painel apropriado
+        // Redirecionar para o painel apropriado e deixar a verificação completa para
+        // os hooks de validação protegidos por try/catch na próxima renderização
         navigate('/');
         
         toast({
           title: "Login realizado com sucesso",
-          description: "Bem-vindo de volta!",
+          description: "Bem-vindo!",
         });
       } catch (error: any) {
-        console.error('Error processing user data after auth:', error);
+        console.error('Error after authentication:', error);
         // Falha segura - redirecionar para completar perfil
         navigate('/complete-profile');
       }

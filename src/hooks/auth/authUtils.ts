@@ -12,6 +12,17 @@ export async function fetchUserData(userId: string): Promise<{
   try {
     console.log(`Fetching user data for user ID: ${userId}`);
     
+    if (!userId) {
+      console.log("No user ID provided");
+      return {
+        appUser: null,
+        organization: null,
+        isAdmin: false,
+        isBlocked: false,
+        subscriptionExpiringSoon: false
+      };
+    }
+    
     // First, get the user data from the users table
     const { data: userData, error: userError } = await supabase
       .from('users')
@@ -21,7 +32,13 @@ export async function fetchUserData(userId: string): Promise<{
       
     if (userError) {
       console.error("Error fetching user data:", userError);
-      throw userError;
+      return {
+        appUser: null,
+        organization: null,
+        isAdmin: false,
+        isBlocked: false,
+        subscriptionExpiringSoon: false
+      };
     }
     
     if (!userData) {
@@ -49,7 +66,25 @@ export async function fetchUserData(userId: string): Promise<{
         
       if (orgError) {
         console.error("Error fetching organization data:", orgError);
-        throw orgError;
+        // Return partial data instead of throwing
+        const appUserData: AppUser = {
+          id: userData.id,
+          organizationId: userData.organization_id,
+          firstName: userData.first_name,
+          lastName: userData.last_name,
+          email: '', // No email in users table, use empty string
+          role: userData.role as 'admin' | 'user',
+          createdAt: userData.created_at,
+          updatedAt: userData.updated_at
+        };
+        
+        return {
+          appUser: appUserData,
+          organization: null,
+          isAdmin: userData.role === 'admin',
+          isBlocked: false,
+          subscriptionExpiringSoon: false
+        };
       }
       
       if (!organization) {
@@ -69,7 +104,7 @@ export async function fetchUserData(userId: string): Promise<{
         return {
           appUser: appUserData,
           organization: null,
-          isAdmin: false,
+          isAdmin: userData.role === 'admin',
           isBlocked: false,
           subscriptionExpiringSoon: false
         };
@@ -96,7 +131,7 @@ export async function fetchUserData(userId: string): Promise<{
       return {
         appUser: appUserData,
         organization: null,
-        isAdmin: false,
+        isAdmin: userData.role === 'admin',
         isBlocked: false,
         subscriptionExpiringSoon: false
       };
