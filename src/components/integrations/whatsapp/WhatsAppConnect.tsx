@@ -28,6 +28,14 @@ export function WhatsAppConnect({
         </Alert>
       )}
       
+      <div className="space-y-2 mb-4">
+        <h3 className="text-sm font-medium">Conectar WhatsApp</h3>
+        <p className="text-sm text-muted-foreground">
+          Instância <strong>{instance?.instanceName}</strong> criada com sucesso.
+          Agora escaneie o código QR com seu WhatsApp para conectar.
+        </p>
+      </div>
+      
       <WhatsAppQRCode
         qrCode={instance?.qrCode}
         loading={loading}

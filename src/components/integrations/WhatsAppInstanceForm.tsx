@@ -44,13 +44,13 @@ export function WhatsAppInstanceForm({ defaultInstanceName, loading, onSubmit }:
                 <Input {...field} placeholder="ex: minha_empresa" />
               </FormControl>
               <FormDescription>
-                Use apenas letras, números e underscores. Este será o identificador único da sua instância.
+                Use apenas letras, números e underscores. Este será o identificador único da sua instância do WhatsApp.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

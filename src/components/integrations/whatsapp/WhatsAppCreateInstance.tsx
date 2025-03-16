@@ -27,6 +27,14 @@ export function WhatsAppCreateInstance({
         </Alert>
       )}
       
+      <div className="space-y-2 mb-4">
+        <h3 className="text-sm font-medium">Configuração da Instância WhatsApp</h3>
+        <p className="text-sm text-muted-foreground">
+          Para começar, crie uma nova instância do WhatsApp com um nome único.
+          Esta instância será usada para enviar mensagens para seus clientes.
+        </p>
+      </div>
+      
       <WhatsAppInstanceForm 
         defaultInstanceName={defaultInstanceName}
         loading={loading}

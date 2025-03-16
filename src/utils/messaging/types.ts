@@ -7,7 +7,7 @@
 
 export interface WhatsAppInstance {
   instanceName: string;
-  status: 'connected' | 'disconnected' | 'connecting';
+  status: 'disconnected' | 'connecting' | 'connected';
   qrCode?: string;
   number?: string;
 }

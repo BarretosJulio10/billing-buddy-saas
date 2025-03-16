@@ -1,47 +1,52 @@
 
 import { useState, useEffect } from "react";
-import { messagingUtils } from "@/utils/messaging";
 import { WhatsAppInstance } from "@/utils/messaging";
+import { messagingUtils } from "@/utils/messaging";
 
-export function useQRCodePolling(
-  instance: WhatsAppInstance | null,
-  isActive: boolean
-) {
+export function useQRCodePolling(instance: WhatsAppInstance | null, active: boolean) {
   const [polling, setPolling] = useState(false);
 
-  // Fetch QR code helper function
-  const fetchQRCode = async () => {
-    if (!instance?.instanceName) return;
-    
-    try {
-      console.log("Fetching QR code for instance:", instance.instanceName);
-      const qrResult = await messagingUtils.getWhatsAppQR(instance.instanceName);
-      console.log("QR code result:", qrResult);
-      
-      return qrResult;
-    } catch (error) {
-      console.error("Error fetching QR code:", error);
-      return null;
-    }
-  };
-
-  // Set up polling for QR code updates when connecting
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let intervalId: NodeJS.Timeout | null = null;
     
-    if (isActive && instance?.status === 'connecting') {
+    if (active && instance?.instanceName) {
       setPolling(true);
-      interval = setInterval(() => {
-        fetchQRCode();
-      }, 10000); // Poll every 10 seconds
-    } else {
-      setPolling(false);
+      console.log("Starting QR code polling for instance:", instance.instanceName);
+      
+      intervalId = setInterval(async () => {
+        if (instance.status === 'connected') {
+          console.log("Instance is connected, stopping QR polling");
+          if (intervalId) clearInterval(intervalId);
+          setPolling(false);
+          return;
+        }
+        
+        console.log("Polling for QR code...");
+        await fetchQRCode();
+      }, 30000); // Poll every 30 seconds
     }
     
     return () => {
-      if (interval) clearInterval(interval);
+      if (intervalId) {
+        console.log("Cleaning up QR code polling interval");
+        clearInterval(intervalId);
+        setPolling(false);
+      }
     };
-  }, [isActive, instance?.status]);
+  }, [active, instance?.instanceName, instance?.status]);
+
+  const fetchQRCode = async () => {
+    if (!instance?.instanceName) return null;
+    
+    try {
+      const result = await messagingUtils.getWhatsAppQR(instance.instanceName);
+      console.log("QR code polling result:", result);
+      return result;
+    } catch (error) {
+      console.error("Error polling for QR code:", error);
+      return null;
+    }
+  };
 
   return {
     polling,

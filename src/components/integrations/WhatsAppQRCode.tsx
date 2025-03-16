@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 interface WhatsAppQRCodeProps {
   qrCode?: string;
@@ -19,12 +20,23 @@ export function WhatsAppQRCode({ qrCode, loading, onConnect }: WhatsAppQRCodePro
         </div>
         
         <div className="flex justify-center">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <img 
-              src={`data:image/png;base64,${qrCode}`} 
-              alt="WhatsApp QR Code" 
-              className="w-64 h-64"
-            />
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            {qrCode.startsWith("data:image") ? (
+              <img 
+                src={qrCode} 
+                alt="WhatsApp QR Code" 
+                className="w-64 h-64"
+              />
+            ) : (
+              <QRCodeSVG 
+                value={qrCode} 
+                size={256}
+                bgColor={"#ffffff"}
+                fgColor={"#000000"}
+                level={"L"}
+                includeMargin={true}
+              />
+            )}
           </div>
         </div>
         
