@@ -57,12 +57,15 @@ export function useSignUp() {
       console.log('Organization created:', orgData.id);
       
       // Create user profile using a simplified approach to avoid RLS recursion
-      const { error: userError } = await supabase.rpc('create_user_profile', {
-        user_id: authData.user.id,
-        org_id: orgData.id,
-        user_role: 'admin',
-        user_email: email
-      });
+      const { error: userError } = await supabase.rpc(
+        'create_user_profile',
+        {
+          user_id: authData.user.id,
+          org_id: orgData.id,
+          user_role: 'admin',
+          user_email: email
+        }
+      );
         
       if (userError) {
         console.error('User profile creation error:', userError);

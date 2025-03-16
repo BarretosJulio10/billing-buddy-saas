@@ -527,6 +527,23 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      create_organization: {
+        Args: {
+          org_name: string
+          org_email: string
+          due_date: string
+        }
+        Returns: string
+      }
+      create_user_profile: {
+        Args: {
+          user_id: string
+          org_id: string
+          user_role: string
+          user_email: string
+        }
+        Returns: undefined
+      }
       get_pending_messages: {
         Args: {
           p_org_id: string
@@ -582,6 +599,16 @@ export type Database = {
       update_overdue_invoices: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      update_user_profile: {
+        Args: {
+          user_id: string
+          org_id: string
+          first_name: string
+          last_name: string
+          user_role: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
