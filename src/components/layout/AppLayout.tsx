@@ -9,6 +9,7 @@ import type { ReactNode } from 'react';
 import { ImpersonationBanner } from "../ImpersonationBanner";
 import { Navigate } from "react-router-dom";
 import { SubscriptionAlert } from "../subscription/SubscriptionAlert";
+import { OrganizationProvider } from "@/providers/OrganizationProvider";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -39,28 +40,30 @@ function AppLayout({ children }: AppLayoutProps) {
   return (
     <>
       <ImpersonationBanner />
-      <SidebarProvider defaultOpen={sidebarOpen}>
-        <div className="min-h-screen flex w-full bg-background relative">
-          <AppSidebar />
-          <main className="flex-1 p-4 md:p-6 overflow-auto w-full">
-            <div className="w-full mx-auto fade-in">
-              {organization?.subscriptionExpiringSoon && <SubscriptionAlert />}
-              <div className="flex justify-end mb-4">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-2" 
-                  onClick={signOut}
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sair
-                </Button>
+      <OrganizationProvider>
+        <SidebarProvider defaultOpen={sidebarOpen}>
+          <div className="min-h-screen flex w-full bg-background relative">
+            <AppSidebar />
+            <main className="flex-1 p-4 md:p-6 overflow-auto w-full">
+              <div className="w-full mx-auto fade-in">
+                {organization?.subscriptionExpiringSoon && <SubscriptionAlert />}
+                <div className="flex justify-end mb-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center gap-2" 
+                    onClick={signOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sair
+                  </Button>
+                </div>
+                {children}
               </div>
-              {children}
-            </div>
-          </main>
-        </div>
-      </SidebarProvider>
+            </main>
+          </div>
+        </SidebarProvider>
+      </OrganizationProvider>
     </>
   );
 }
