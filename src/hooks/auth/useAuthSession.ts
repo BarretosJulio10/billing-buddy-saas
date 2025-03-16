@@ -17,10 +17,18 @@ export function useAuthSession() {
     if (user) {
       setLoading(true);
       try {
+        console.log("Refetching user data...");
         const result = await fetchUserData(user.id);
-        setAppUser(result.appUser);
-        setOrganization(result.organization);
-        setIsAdmin(result.isAdmin);
+        
+        if (result) {
+          setAppUser(result.appUser);
+          setOrganization(result.organization);
+          setIsAdmin(result.isAdmin);
+          console.log("User data refetched successfully:", result);
+        } else {
+          console.warn("No user data returned from refetch");
+        }
+        
         setLoading(false);
         return result;
       } catch (error) {
@@ -33,44 +41,88 @@ export function useAuthSession() {
   };
 
   useEffect(() => {
+    // Flag to prevent setting state after unmount
+    let isMounted = true;
+    
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserData(session.user.id).then((result) => {
-          setAppUser(result.appUser);
-          setOrganization(result.organization);
-          setIsAdmin(result.isAdmin);
+    const getInitialSession = async () => {
+      try {
+        setLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          try {
+            const result = await fetchUserData(session.user.id);
+            
+            if (!isMounted) return;
+            
+            if (result) {
+              setAppUser(result.appUser);
+              setOrganization(result.organization);
+              setIsAdmin(result.isAdmin);
+              console.log("Initial user data loaded:", result);
+            }
+          } catch (error) {
+            console.error("Error loading initial user data:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Session fetching error:", error);
+      } finally {
+        if (isMounted) {
           setLoading(false);
-        });
-      } else {
-        setLoading(false);
+        }
       }
-    });
+    };
+    
+    getInitialSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMounted) return;
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
         setLoading(true);
-        fetchUserData(session.user.id).then((result) => {
-          setAppUser(result.appUser);
-          setOrganization(result.organization);
-          setIsAdmin(result.isAdmin);
-          setLoading(false);
-        });
+        try {
+          const result = await fetchUserData(session.user.id);
+          
+          if (!isMounted) return;
+          
+          if (result) {
+            setAppUser(result.appUser);
+            setOrganization(result.organization);
+            setIsAdmin(result.isAdmin);
+            console.log("Auth state change user data loaded:", result);
+          }
+        } catch (error) {
+          console.error("Error loading auth state change user data:", error);
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
       } else {
-        setAppUser(null);
-        setOrganization(null);
-        setIsAdmin(false);
-        setLoading(false);
+        if (isMounted) {
+          setAppUser(null);
+          setOrganization(null);
+          setIsAdmin(false);
+          setLoading(false);
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return {

@@ -30,16 +30,29 @@ export default function CompleteProfile() {
   const { user, refetchUserData } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [completeSuccess, setCompleteSuccess] = useState(false);
+  const [profileCompleted, setProfileCompleted] = useState(false);
 
-  // Prevent coming back to this page if profile is already complete
+  // Prevent returning to this page after successful completion
   useEffect(() => {
-    if (completeSuccess) {
-      // Prevent browser back button from returning to this page
+    if (profileCompleted) {
+      // Block browser back button
       window.history.pushState(null, "", "/");
-      navigate("/", { replace: true });
+      const handlePopState = () => {
+        window.history.pushState(null, "", "/");
+      };
+      window.addEventListener("popstate", handlePopState);
+      
+      // Navigate away after a short delay
+      const timer = setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 500);
+      
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+        clearTimeout(timer);
+      };
     }
-  }, [completeSuccess, navigate]);
+  }, [profileCompleted, navigate]);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -102,16 +115,30 @@ export default function CompleteProfile() {
         throw userError;
       }
       
-      // Wait for user data to be properly refreshed
-      await refetchUserData();
+      console.log("Profile completed successfully, refetching user data...");
+      
+      // Wait a bit for database propagation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Refetch user data multiple times with increasing delays
+      let attempts = 0;
+      let userData = null;
+      
+      while (!userData && attempts < 3) {
+        attempts++;
+        const delay = 500 * attempts;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        console.log(`Attempt ${attempts} to refetch user data after profile completion`);
+        userData = await refetchUserData();
+      }
       
       toast({
         title: "Perfil completo",
         description: "Seu perfil foi atualizado com sucesso!",
       });
       
-      // Mark profile completion as successful to trigger redirect
-      setCompleteSuccess(true);
+      // Mark completion as successful to trigger the redirect effect
+      setProfileCompleted(true);
       
     } catch (error: any) {
       console.error('Profile completion error:', error);

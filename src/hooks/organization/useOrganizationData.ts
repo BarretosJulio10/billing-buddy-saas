@@ -12,7 +12,7 @@ export const useOrganizationData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subscriptionDetails, setSubscriptionDetails] = useState<SubscriptionDetails | null>(null);
-  const { user: authUser, loading: authLoading } = useAuth();
+  const { user: authUser, loading: authLoading, appUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -69,6 +69,7 @@ export const useOrganizationData = () => {
   };
 
   const fetchOrganizationData = async () => {
+    // Don't try to fetch if we don't have a user yet
     if (!authUser) {
       setLoading(false);
       return;
@@ -87,8 +88,53 @@ export const useOrganizationData = () => {
         setLoading(false);
         return;
       }
+      
+      // If we already have an appUser from auth context with organizationId, use that
+      // This helps avoid race conditions and extra database calls
+      if (appUser?.organizationId) {
+        console.log(`Using existing appUser data: ${appUser.id}, org: ${appUser.organizationId}`);
+        // We have the app user, but we still need to fetch organization details
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('*')
+          .eq('id', appUser.organizationId)
+          .maybeSingle();
 
-      // Fetch user data with organization information
+        if (orgError) {
+          console.error('Error fetching organization data:', orgError);
+          setError('Failed to load organization data');
+          setLoading(false);
+          return;
+        }
+
+        if (!orgData) {
+          console.error('Organization not found:', appUser.organizationId);
+          setError('Organization not found');
+          setLoading(false);
+          
+          // Redirect to complete profile
+          if (!skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
+            navigate('/complete-profile', { replace: true });
+          }
+          return;
+        }
+
+        // Use existing appUser and newly fetched organization
+        setUser(appUser as User);
+        const mappedOrg = mapOrganization(orgData);
+        setOrganization(mappedOrg);
+        setSubscriptionDetails(extractSubscriptionDetails(mappedOrg));
+        
+        // Check if organization is blocked
+        if (mappedOrg.blocked && currentPath !== '/blocked') {
+          navigate('/blocked', { replace: true });
+        }
+        
+        setLoading(false);
+        return;
+      }
+
+      // If we don't have appUser with organizationId, fetch user data from database
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select(`
@@ -108,7 +154,7 @@ export const useOrganizationData = () => {
         setError('Failed to load user data');
         setLoading(false);
         
-        // If this is not a special page, redirect to complete profile
+        // Redirect to complete profile if not on a special page
         if (!skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
           navigate('/complete-profile', { replace: true });
         }
@@ -119,7 +165,7 @@ export const useOrganizationData = () => {
         console.log('User needs to complete profile');
         setLoading(false);
         
-        // If this is not a special page, redirect to complete profile
+        // Redirect to complete profile if not on a special page
         if (!skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
           navigate('/complete-profile', { replace: true });
         }
@@ -159,7 +205,7 @@ export const useOrganizationData = () => {
       setOrganization(mappedOrg);
       setSubscriptionDetails(extractSubscriptionDetails(mappedOrg));
 
-      // Check if organization is blocked and subscription status
+      // Check if organization is blocked
       if (mappedOrg.blocked && currentPath !== '/blocked') {
         navigate('/blocked', { replace: true });
       }
@@ -187,7 +233,7 @@ export const useOrganizationData = () => {
     if (!authLoading) {
       fetchOrganizationData();
     }
-  }, [authUser, authLoading, window.location.pathname]);
+  }, [authUser, authLoading, appUser, window.location.pathname]);
 
   return {
     organization,

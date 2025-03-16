@@ -88,7 +88,7 @@ export async function fetchUserData(userId: string, retryCount = 0): Promise<{
       };
     }
     
-    // For regular users, we try to get user data, but handle failures gracefully
+    // For regular users, try to get user data
     let userData;
     try {
       // Use maybeSingle to avoid errors if no user is found
@@ -102,20 +102,19 @@ export async function fetchUserData(userId: string, retryCount = 0): Promise<{
         console.error("Error fetching user data:", error);
       } else {
         userData = data;
+        console.log("User data found:", userData);
       }
     } catch (error) {
       console.error("Exception while fetching user data:", error);
-      // Continue with null userData
     }
     
     if (!userData) {
       console.log("No user data found, user might need to complete profile");
       
-      // If this is not the initial fetch (we're in a refetch), let's add a small delay and retry
-      // This is to handle the case where the user data was just created but not yet visible
-      if (retryCount < 2 && window.location.pathname.includes('complete-profile')) {
-        console.log(`Retrying user data fetch in 500ms... (attempt ${retryCount + 1})`);
-        await new Promise(resolve => setTimeout(resolve, 500));
+      // If we're in a retry situation (especially after creating a profile), add a delay and retry
+      if (retryCount < 3) {
+        console.log(`Retrying user data fetch in ${500 * (retryCount + 1)}ms... (attempt ${retryCount + 1})`);
+        await new Promise(resolve => setTimeout(resolve, 500 * (retryCount + 1)));
         return fetchUserData(userId, retryCount + 1);
       }
       
@@ -127,8 +126,6 @@ export async function fetchUserData(userId: string, retryCount = 0): Promise<{
         subscriptionExpiringSoon: false
       };
     }
-    
-    console.log("User data found:", userData);
     
     // Only attempt to fetch organization if there's an organization_id
     let orgData = null;
@@ -145,16 +142,10 @@ export async function fetchUserData(userId: string, retryCount = 0): Promise<{
           console.error("Error fetching organization data:", orgError);
         } else {
           orgData = organization;
+          console.log("Organization data found:", orgData);
         }
       } catch (error) {
         console.error("Exception while fetching organization data:", error);
-        // Continue with null orgData
-      }
-      
-      if (orgData) {
-        console.log("Organization data found:", orgData);
-      } else {
-        console.error("Organization not found:", userData.organization_id);
       }
     }
     
@@ -164,7 +155,7 @@ export async function fetchUserData(userId: string, retryCount = 0): Promise<{
       organizationId: userData.organization_id,
       firstName: userData.first_name,
       lastName: userData.last_name,
-      email: (orgData?.email) || '', // Use organization email as fallback
+      email: (orgData?.email) || '',
       role: userData.role as 'admin' | 'user',
       createdAt: userData.created_at,
       updatedAt: userData.updated_at
