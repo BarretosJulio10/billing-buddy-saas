@@ -32,16 +32,3 @@ export const invoiceSchema = z.object({
 });
 
 export type InvoiceFormData = z.infer<typeof invoiceSchema>;
-
-// Mock data until Supabase integration
-export const mockCustomers = [
-  { id: "1", name: "João Silva" },
-  { id: "2", name: "Maria Oliveira" },
-  { id: "3", name: "Pedro Santos" },
-];
-
-export const mockTemplates = [
-  { id: "1", name: "Modelo Padrão" },
-  { id: "2", name: "Modelo Premium" },
-  { id: "3", name: "Modelo Educacional" },
-];

@@ -8,8 +8,6 @@ import {
   Invoice, 
   InvoiceFormData, 
   invoiceSchema,
-  mockCustomers,
-  mockTemplates
 } from "./types";
 import { 
   InputField, 
@@ -17,6 +15,8 @@ import {
   SelectField, 
   DateField 
 } from "@/components/form/fields";
+import { useInvoiceData } from "@/hooks/useInvoiceData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export type { Invoice } from "./types";
 
@@ -27,6 +27,8 @@ interface InvoiceFormProps {
 }
 
 export function InvoiceForm({ initialData, onSubmit, onCancel }: InvoiceFormProps) {
+  const { customers, templates, isLoading } = useInvoiceData();
+  
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: initialData || {
@@ -60,7 +62,7 @@ export function InvoiceForm({ initialData, onSubmit, onCancel }: InvoiceFormProp
     }
   };
 
-  const customerOptions = mockCustomers.map(customer => ({
+  const customerOptions = customers.map(customer => ({
     value: customer.id,
     label: customer.name,
   }));
@@ -70,10 +72,27 @@ export function InvoiceForm({ initialData, onSubmit, onCancel }: InvoiceFormProp
     { value: "asaas", label: "Asaas" },
   ];
 
-  const templateOptions = mockTemplates.map(template => ({
+  const templateOptions = templates.map(template => ({
     value: template.id,
     label: template.name,
   }));
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <div className="flex justify-end space-x-2">
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-24" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>

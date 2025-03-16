@@ -1,12 +1,13 @@
 
-import { Input, InputProps } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { FormFieldWrapper } from "../FormFieldWrapper";
 import { UseFormReturn, FieldPath, FieldValues } from "react-hook-form";
+import React from "react";
 
 interface InputFieldProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
-> extends Omit<InputProps, "name"> {
+> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "name"> {
   form: UseFormReturn<TFieldValues>;
   name: TName;
   label: string;

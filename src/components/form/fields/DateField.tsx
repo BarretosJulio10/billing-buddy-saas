@@ -6,8 +6,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { UseFormReturn, FieldPath, FieldValues } from "react-hook-form";
-import { FormFieldWrapper } from "../FormFieldWrapper";
+import { UseFormReturn, FieldPath, FieldValues, Controller } from "react-hook-form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 
 interface DateFieldProps<
   TFieldValues extends FieldValues = FieldValues,

@@ -6,8 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormFieldWrapper } from "../FormFieldWrapper";
 import { UseFormReturn, FieldPath, FieldValues, Controller } from "react-hook-form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 
 interface SelectOption {
   value: string;
