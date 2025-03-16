@@ -17,13 +17,12 @@ export const settingsManager = {
       console.log(`Salvando configurações para instância ${instanceName} (org: ${organizationId})`);
       
       // Verificar se já existe uma configuração para esta organização
-      const { data: existingSettings, error: queryError } = await supabase
-        .from('whatsapp_instances')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .single();
+      const { data: existingSettings, error: queryError } = await supabase.rpc(
+        'get_whatsapp_instance',
+        { org_id: organizationId }
+      );
       
-      if (queryError && queryError.code !== 'PGRST116') { // PGRST116 = not found
+      if (queryError) {
         console.error('Erro ao verificar configurações existentes:', queryError);
         throw new Error(queryError.message);
       }
@@ -32,29 +31,25 @@ export const settingsManager = {
       
       if (existingSettings) {
         // Atualizar configurações existentes
-        const { data, error } = await supabase
-          .from('whatsapp_instances')
-          .update({
-            instance_name: instanceName,
-            updated_at: new Date().toISOString()
-          })
-          .eq('organization_id', organizationId)
-          .select()
-          .single();
+        const { data, error } = await supabase.rpc(
+          'update_whatsapp_instance',
+          { 
+            org_id: organizationId,
+            instance_name_param: instanceName
+          }
+        );
         
         if (error) throw error;
         result = data;
       } else {
         // Inserir novas configurações
-        const { data, error } = await supabase
-          .from('whatsapp_instances')
-          .insert({
-            organization_id: organizationId,
-            instance_name: instanceName,
-            status: 'pending'
-          })
-          .select()
-          .single();
+        const { data, error } = await supabase.rpc(
+          'create_whatsapp_instance',
+          { 
+            org_id: organizationId,
+            instance_name_param: instanceName
+          }
+        );
         
         if (error) throw error;
         result = data;
@@ -62,7 +57,7 @@ export const settingsManager = {
       
       return {
         success: true,
-        instanceName: result.instance_name
+        instanceName: instanceName
       };
     } catch (error) {
       console.error('Erro ao salvar configurações do WhatsApp:', error);
@@ -79,22 +74,24 @@ export const settingsManager = {
     try {
       console.log(`Obtendo configurações da instância para org ${organizationId}`);
       
-      const { data, error } = await supabase
-        .from('whatsapp_instances')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .single();
+      const { data, error } = await supabase.rpc(
+        'get_whatsapp_instance',
+        { org_id: organizationId }
+      );
       
       if (error) {
-        // Se for erro "not found", retornamos sucesso=false mas sem mensagem de erro
-        if (error.code === 'PGRST116') {
-          return {
-            success: false,
-            message: 'Nenhuma instância configurada'
-          };
-        }
-        
-        throw error;
+        console.error('Erro ao obter configurações do WhatsApp:', error);
+        return {
+          success: false,
+          message: 'Nenhuma instância configurada'
+        };
+      }
+      
+      if (!data) {
+        return {
+          success: false,
+          message: 'Nenhuma instância configurada'
+        };
       }
       
       return {

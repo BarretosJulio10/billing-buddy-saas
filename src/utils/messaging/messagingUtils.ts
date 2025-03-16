@@ -1,5 +1,8 @@
+
+import { supabase } from "@/integrations/supabase/client";
 import { whatsAppUtils } from "./whatsapp";
 import { InstanceActionResult, InstanceSettings, ConnectionResult, QRCodeResult } from "./types";
+
 export const messagingUtils = {
   // WhatsApp Integration Helpers
   async createWhatsAppInstance(instanceName: string, organizationId: string): Promise<InstanceActionResult> {
