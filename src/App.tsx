@@ -39,7 +39,9 @@ function RequireAuth({ children, isAdminRequired = false }: { children: JSX.Elem
     return <Navigate to="/login" replace />;
   }
 
-  if (isAdminRequired && !isAdmin) {
+  // Verificação específica para rotas de administrador
+  if (isAdminRequired && user.email !== 'julioquintanilha@hotmail.com') {
+    console.log("Non-admin user attempting to access admin routes, redirecting to home");
     return <Navigate to="/" replace />;
   }
 
@@ -119,7 +121,7 @@ function App() {
                 <Route path="trash" element={<Trash />} />
               </Route>
               
-              {/* Admin Routes */}
+              {/* Admin Routes - Rota protegida especificamente para o admin com isAdminRequired=true */}
               <Route 
                 path="/admin" 
                 element={

@@ -15,10 +15,12 @@ export function useSignIn() {
       setLoading(true);
       console.log(`Attempting to sign in: ${email}`);
       
-      // Check if this is the admin user
-      const isAdminEmail = email === 'julioquintanilha@hotmail.com';
+      // Verificação explícita para o admin usando constantes para evitar erros
+      const ADMIN_EMAIL = 'julioquintanilha@hotmail.com';
+      const ADMIN_PASSWORD = 'Gigi553518-+.#';
+      const isAdminUser = email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
       
-      // Sign in with provided credentials
+      // Autenticação com o Supabase
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -36,9 +38,9 @@ export function useSignIn() {
       
       console.log("User authenticated successfully:", authData.user.id);
 
-      // Admin login handler - bypass all regular flow for admin user
-      if (isAdminEmail && password === 'Gigi553518-+.#') {
-        console.log("Admin user detected, redirecting to admin panel");
+      // Tratamento especial para o administrador - bypass completo do fluxo regular
+      if (isAdminUser) {
+        console.log("Admin credentials detected, redirecting to admin panel");
         navigate('/admin');
         toast({
           title: "Login realizado com sucesso",
@@ -48,11 +50,11 @@ export function useSignIn() {
         return;
       }
 
-      // For regular users, fetch user data to check profile completion
+      // Para usuários regulares, buscar dados do usuário para verificar a conclusão do perfil
       const { appUser, organization, isAdmin } = await fetchUserData(authData.user.id);
       
       if (!appUser) {
-        // User needs to complete profile
+        // Usuário precisa completar o perfil
         console.log("User needs to complete profile");
         navigate('/complete-profile');
         setLoading(false);
@@ -64,22 +66,13 @@ export function useSignIn() {
         throw new Error("Organization data not found. Please contact support.");
       }
 
-      // Check if user has admin role in their organization (not the main admin)
-      if (isAdmin && !isAdminEmail) {
-        console.log("Organization admin user detected, redirecting to company panel");
-        navigate('/');
-      } else if (isAdminEmail) {
-        // Double check for admin email to ensure they always go to admin panel
-        console.log("Admin email detected, redirecting to admin panel");
-        navigate('/admin');
-      } else {
-        console.log("Regular user detected, redirecting to company panel");
-        navigate('/');
-      }
+      // Apenas usuários regulares devem chegar aqui - sempre redirecionar para o painel da empresa
+      console.log("Regular user detected, redirecting to company panel");
+      navigate('/');
 
       toast({
         title: "Login realizado com sucesso",
-        description: isAdminEmail ? "Bem-vindo administrador!" : "Bem-vindo de volta!",
+        description: "Bem-vindo de volta!",
       });
     } catch (error: any) {
       console.error('Full login error details:', error);

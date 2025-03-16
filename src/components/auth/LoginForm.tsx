@@ -16,7 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X, Info } from "lucide-react";
+import { X, Info, Lock } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -88,6 +88,15 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
         </Alert>
       )}
       
+      {isAdminMode && (
+        <Alert variant="default" className="mb-4 bg-blue-50 border-blue-200">
+          <AlertDescription className="flex items-center gap-2 text-blue-700">
+            <Lock size={16} />
+            Modo Administrador Ativado
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
         <FormField
           control={form.control}
@@ -124,7 +133,7 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
         />
         
         <div className="flex justify-between items-center">
-          <Button type="button" variant="ghost" size="sm" className="text-xs flex items-center gap-1" onClick={toggleAdminMode}>
+          <Button type="button" variant="ghost" size="sm" className={`text-xs flex items-center gap-1 ${isAdminMode ? 'text-blue-600' : ''}`} onClick={toggleAdminMode}>
             <Info size={12} />
             {isAdminMode ? "Modo Normal" : "Modo Admin"}
           </Button>
