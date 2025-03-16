@@ -49,22 +49,14 @@ export function useSignIn() {
         return;
       }
 
-      // Para usuários regulares, vamos apenas redirecionar inicialmente para minimizar 
-      // chamadas de API, a verificação completa acontecerá na próxima renderização
-      try {
-        // Redirecionar para o painel apropriado e deixar a verificação completa para
-        // os hooks de validação protegidos por try/catch na próxima renderização
-        navigate('/');
-        
-        toast({
-          title: "Login realizado com sucesso",
-          description: "Bem-vindo!",
-        });
-      } catch (error: any) {
-        console.error('Error after authentication:', error);
-        // Falha segura - redirecionar para completar perfil
-        navigate('/complete-profile');
-      }
+      // For regular users, we'll just redirect initially to minimize
+      // API calls, the full verification will happen on next render
+      navigate('/');
+      
+      toast({
+        title: "Login realizado com sucesso",
+        description: "Bem-vindo!",
+      });
     } catch (error: any) {
       console.error('Full login error details:', error);
       toast({

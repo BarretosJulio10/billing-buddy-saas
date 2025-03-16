@@ -47,15 +47,10 @@ export function LoginForm({ isLoading, setIsLoading }: LoginFormProps) {
       setLoginError(null);
       console.log("Attempting to sign in through form:", data.email);
       await signIn(data.email, data.password);
-      // O redirecionamento é tratado dentro da função signIn
+      // Redirection is handled within the signIn function
     } catch (error: any) {
       console.error('Login error in handleLogin:', error);
       setLoginError("Credenciais de login inválidas. Por favor, verifique seu email e senha.");
-      toast({
-        title: "Erro ao fazer login",
-        description: error.message || "Credenciais inválidas. Verifique seu email e senha.",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }

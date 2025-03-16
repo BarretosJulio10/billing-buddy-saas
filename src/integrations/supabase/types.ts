@@ -627,6 +627,10 @@ export type Database = {
           deleted_at: string
         }[]
       }
+      get_user_organization: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_organization_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -636,6 +640,10 @@ export type Database = {
           org_id: string
         }
         Returns: Json
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       is_admin_user: {
         Args: Record<PropertyKey, never>
