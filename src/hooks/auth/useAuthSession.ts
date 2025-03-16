@@ -15,11 +15,19 @@ export function useAuthSession() {
 
   const refetchUserData = async () => {
     if (user) {
-      const result = await fetchUserData(user.id);
-      setAppUser(result.appUser);
-      setOrganization(result.organization);
-      setIsAdmin(result.isAdmin);
-      return result;
+      setLoading(true);
+      try {
+        const result = await fetchUserData(user.id);
+        setAppUser(result.appUser);
+        setOrganization(result.organization);
+        setIsAdmin(result.isAdmin);
+        setLoading(false);
+        return result;
+      } catch (error) {
+        console.error('Error refetching user data:', error);
+        setLoading(false);
+        return null;
+      }
     }
     return null;
   };
@@ -47,15 +55,18 @@ export function useAuthSession() {
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        setLoading(true);
         fetchUserData(session.user.id).then((result) => {
           setAppUser(result.appUser);
           setOrganization(result.organization);
           setIsAdmin(result.isAdmin);
+          setLoading(false);
         });
       } else {
         setAppUser(null);
         setOrganization(null);
         setIsAdmin(false);
+        setLoading(false);
       }
     });
 

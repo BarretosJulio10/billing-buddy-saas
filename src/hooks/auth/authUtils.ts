@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Organization, User as AppUser } from '@/types/organization';
 
-export async function fetchUserData(userId: string): Promise<{ 
+export async function fetchUserData(userId: string, retryCount = 0): Promise<{ 
   appUser: AppUser | null; 
   organization: Organization | null;
   isAdmin: boolean;
@@ -10,7 +10,7 @@ export async function fetchUserData(userId: string): Promise<{
   subscriptionExpiringSoon: boolean;
 }> {
   try {
-    console.log(`Fetching user data for user ID: ${userId}`);
+    console.log(`Fetching user data for user ID: ${userId} (attempt ${retryCount + 1})`);
     
     if (!userId) {
       console.log("No user ID provided");
@@ -110,6 +110,15 @@ export async function fetchUserData(userId: string): Promise<{
     
     if (!userData) {
       console.log("No user data found, user might need to complete profile");
+      
+      // If this is not the initial fetch (we're in a refetch), let's add a small delay and retry
+      // This is to handle the case where the user data was just created but not yet visible
+      if (retryCount < 2 && window.location.pathname.includes('complete-profile')) {
+        console.log(`Retrying user data fetch in 500ms... (attempt ${retryCount + 1})`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return fetchUserData(userId, retryCount + 1);
+      }
+      
       return {
         appUser: null,
         organization: null,

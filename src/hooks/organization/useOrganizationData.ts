@@ -80,7 +80,7 @@ export const useOrganizationData = () => {
 
       // Skip loading on specific pages where organization data isn't needed yet
       const currentPath = window.location.pathname;
-      const skipPaths = ['/login', '/complete-profile', '/blocked'];
+      const skipPaths = ['/login', '/complete-profile', '/blocked', '/admin'];
       
       if (skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
         console.log(`Skipping organization data fetch on ${currentPath}`);
@@ -110,7 +110,7 @@ export const useOrganizationData = () => {
         
         // If this is not a special page, redirect to complete profile
         if (!skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
-          navigate('/complete-profile');
+          navigate('/complete-profile', { replace: true });
         }
         return;
       }
@@ -121,7 +121,7 @@ export const useOrganizationData = () => {
         
         // If this is not a special page, redirect to complete profile
         if (!skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
-          navigate('/complete-profile');
+          navigate('/complete-profile', { replace: true });
         }
         return;
       }
@@ -144,6 +144,11 @@ export const useOrganizationData = () => {
         console.error('Organization not found:', userData.organization_id);
         setError('Organization not found');
         setLoading(false);
+        
+        // Redirect to complete profile to fix this situation
+        if (!skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
+          navigate('/complete-profile', { replace: true });
+        }
         return;
       }
 
@@ -156,7 +161,7 @@ export const useOrganizationData = () => {
 
       // Check if organization is blocked and subscription status
       if (mappedOrg.blocked && currentPath !== '/blocked') {
-        navigate('/blocked');
+        navigate('/blocked', { replace: true });
       }
 
     } catch (err: any) {
@@ -171,7 +176,7 @@ export const useOrganizationData = () => {
   useEffect(() => {
     // Skip loading on login, complete profile, and blocked pages
     const currentPath = window.location.pathname;
-    const skipPaths = ['/login', '/complete-profile', '/blocked'];
+    const skipPaths = ['/login', '/complete-profile', '/blocked', '/admin'];
     
     if (skipPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
       console.log(`Skipping organization data initial fetch on ${currentPath}`);

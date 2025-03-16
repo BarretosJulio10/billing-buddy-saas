@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,16 @@ export default function CompleteProfile() {
   const { user, refetchUserData } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [completeSuccess, setCompleteSuccess] = useState(false);
+
+  // Prevent coming back to this page if profile is already complete
+  useEffect(() => {
+    if (completeSuccess) {
+      // Prevent browser back button from returning to this page
+      window.history.pushState(null, "", "/");
+      navigate("/", { replace: true });
+    }
+  }, [completeSuccess, navigate]);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -91,6 +102,7 @@ export default function CompleteProfile() {
         throw userError;
       }
       
+      // Wait for user data to be properly refreshed
       await refetchUserData();
       
       toast({
@@ -98,8 +110,8 @@ export default function CompleteProfile() {
         description: "Seu perfil foi atualizado com sucesso!",
       });
       
-      // Imediatamente redirecionando para o painel sem delay para evitar que a página seja recarregada
-      navigate('/', { replace: true });
+      // Mark profile completion as successful to trigger redirect
+      setCompleteSuccess(true);
       
     } catch (error: any) {
       console.error('Profile completion error:', error);
