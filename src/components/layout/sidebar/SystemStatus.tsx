@@ -20,7 +20,7 @@ interface SystemStatusProps {
 
 export function SystemStatus() {
   const { organizationId } = useOrganization();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [statusData, setStatusData] = useState({
     whatsappStatus: { connected: false, lastConnection: "" },
     telegramStatus: { connected: false, lastConnection: "" },
@@ -30,16 +30,16 @@ export function SystemStatus() {
   useEffect(() => {
     if (organizationId) {
       checkWhatsAppStatus();
-    }
-    
-    // Set up polling to refresh status every 1 minute
-    const pollingInterval = setInterval(() => {
-      if (organizationId) {
-        checkWhatsAppStatus();
-      }
-    }, 60000);
+      
+      // Set up polling to refresh status every 2 minutes
+      const pollingInterval = setInterval(() => {
+        if (organizationId) {
+          checkWhatsAppStatus();
+        }
+      }, 120000); // 2 minutes
 
-    return () => clearInterval(pollingInterval);
+      return () => clearInterval(pollingInterval);
+    }
   }, [organizationId]);
 
   const checkWhatsAppStatus = async () => {
@@ -48,6 +48,7 @@ export function SystemStatus() {
     setLoading(true);
     try {
       const instanceName = `org_${organizationId}`;
+      console.log("Checking WhatsApp status in SystemStatus component:", instanceName);
       const result = await messagingUtils.checkWhatsAppConnection(instanceName);
       
       setStatusData(prev => ({
@@ -58,7 +59,7 @@ export function SystemStatus() {
         }
       }));
     } catch (error) {
-      console.error("Error checking WhatsApp status:", error);
+      console.error("Error checking WhatsApp status in sidebar:", error);
     } finally {
       setLoading(false);
     }
@@ -115,13 +116,14 @@ interface StatusIndicatorProps {
 }
 
 function StatusIndicator({ connected, color }: StatusIndicatorProps) {
-  const colorClass = color === "emerald" ? "text-emerald-500" : "text-blue-500";
+  const bgColorClass = color === "emerald" ? "bg-emerald-500" : "bg-blue-500";
+  const textColorClass = color === "emerald" ? "text-emerald-500" : "text-blue-500";
   
   if (connected) {
     return (
       <div className="flex items-center">
-        <div className={`h-2 w-2 rounded-full bg-${color}-500 mr-1.5`}></div>
-        <span className={`text-sm ${colorClass}`}>Online</span>
+        <div className={`h-2 w-2 rounded-full ${bgColorClass} mr-1.5`}></div>
+        <span className={`text-sm ${textColorClass}`}>Online</span>
       </div>
     );
   }

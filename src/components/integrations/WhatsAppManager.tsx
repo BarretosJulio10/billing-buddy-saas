@@ -5,17 +5,20 @@ import { messagingUtils, WhatsAppInstance } from "@/utils/messagingUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, RefreshCw, PhoneOff, Check } from "lucide-react";
+import { Loader2, RefreshCw, PhoneOff, Check, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function WhatsAppManager() {
   const { organizationId } = useOrganization();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [instance, setInstance] = useState<WhatsAppInstance | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [qrPollingActive, setQrPollingActive] = useState(false);
-  const instanceName = `org_${organizationId}`;
+  const [error, setError] = useState<string | null>(null);
+  const instanceName = organizationId ? `org_${organizationId}` : "";
 
+  // Initial check on component mount
   useEffect(() => {
     if (organizationId) {
       checkInstanceStatus();
@@ -24,7 +27,7 @@ export function WhatsAppManager() {
 
   // Poll for QR code updates when connecting
   useEffect(() => {
-    let interval: any = null;
+    let interval: NodeJS.Timeout | null = null;
     
     if (qrPollingActive && instance?.status === 'connecting') {
       interval = setInterval(() => {
@@ -42,8 +45,12 @@ export function WhatsAppManager() {
     if (!organizationId) return;
     
     setLoading(true);
+    setError(null);
+    
     try {
+      console.log("Checking WhatsApp connection for instance:", instanceName);
       const connectionResult = await messagingUtils.checkWhatsAppConnection(instanceName);
+      console.log("Connection result:", connectionResult);
       
       if (connectionResult.success) {
         setInstance({
@@ -59,53 +66,57 @@ export function WhatsAppManager() {
           setQrPollingActive(false);
         }
       } else {
-        // Instance might not exist, try to create it
+        // Instance might not exist, set to disconnected state
         setInstance({
           instanceName,
           status: 'disconnected'
         });
         
-        toast({
-          title: "WhatsApp não configurado",
-          description: "Clique em Conectar para configurar o WhatsApp",
-        });
+        console.log("WhatsApp not configured, ready to connect");
       }
     } catch (error) {
       console.error("Error checking WhatsApp status:", error);
-      toast({
-        title: "Erro ao verificar o status do WhatsApp",
-        description: "Não foi possível verificar o status da conexão",
-        variant: "destructive"
-      });
+      setError("Não foi possível verificar o status da conexão com WhatsApp");
     } finally {
       setLoading(false);
     }
   };
 
   const fetchQRCode = async () => {
-    if (!organizationId) return;
+    if (!organizationId || !instanceName) return;
     
     try {
+      console.log("Fetching QR code for instance:", instanceName);
       const qrResult = await messagingUtils.getWhatsAppQR(instanceName);
+      console.log("QR code result:", qrResult);
       
       if (qrResult.success && qrResult.qrcode) {
         setInstance(prev => prev ? { ...prev, qrCode: qrResult.qrcode, status: 'connecting' } : null);
         setQrPollingActive(true);
-      } else {
+      } else if (qrResult.message) {
         console.log("QR code not available:", qrResult.message);
+        // Don't set error here, just log it
       }
     } catch (error) {
       console.error("Error fetching QR code:", error);
+      // Don't set error here, it's not critical
     }
   };
 
   const handleConnect = async () => {
-    if (!organizationId) return;
+    if (!organizationId || !instanceName) {
+      setError("ID da organização não disponível");
+      return;
+    }
     
     setLoading(true);
+    setError(null);
+    
     try {
+      console.log("Creating WhatsApp instance:", instanceName);
       // Create the instance if it doesn't exist
       const createResult = await messagingUtils.createWhatsAppInstance(instanceName, organizationId);
+      console.log("Create result:", createResult);
       
       if (createResult.success) {
         toast({
@@ -115,7 +126,12 @@ export function WhatsAppManager() {
         
         // Fetch the QR code
         await fetchQRCode();
+        setInstance(prev => ({
+          ...(prev || { instanceName }),
+          status: 'connecting'
+        }));
       } else {
+        setError(createResult.message || "Não foi possível iniciar a conexão com o WhatsApp");
         toast({
           title: "Erro ao iniciar conexão",
           description: createResult.message || "Não foi possível iniciar a conexão com o WhatsApp",
@@ -124,22 +140,22 @@ export function WhatsAppManager() {
       }
     } catch (error) {
       console.error("Error connecting WhatsApp:", error);
-      toast({
-        title: "Erro ao conectar WhatsApp",
-        description: "Não foi possível iniciar a conexão",
-        variant: "destructive"
-      });
+      setError("Não foi possível iniciar a conexão com o WhatsApp");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDisconnect = async () => {
-    if (!instance) return;
+    if (!instance || !instanceName) return;
     
     setLoading(true);
+    setError(null);
+    
     try {
+      console.log("Disconnecting WhatsApp instance:", instanceName);
       const result = await messagingUtils.disconnectWhatsApp(instance.instanceName);
+      console.log("Disconnect result:", result);
       
       if (result.success) {
         setInstance({
@@ -155,6 +171,7 @@ export function WhatsAppManager() {
           description: "O WhatsApp foi desconectado com sucesso",
         });
       } else {
+        setError(result.message || "Não foi possível desconectar o WhatsApp");
         toast({
           title: "Erro ao desconectar",
           description: result.message || "Não foi possível desconectar o WhatsApp",
@@ -163,11 +180,7 @@ export function WhatsAppManager() {
       }
     } catch (error) {
       console.error("Error disconnecting WhatsApp:", error);
-      toast({
-        title: "Erro ao desconectar WhatsApp",
-        description: "Não foi possível desconectar",
-        variant: "destructive"
-      });
+      setError("Não foi possível desconectar o WhatsApp");
     } finally {
       setLoading(false);
     }
@@ -175,6 +188,7 @@ export function WhatsAppManager() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    setError(null);
     await checkInstanceStatus();
     setRefreshing(false);
   };
@@ -202,7 +216,15 @@ export function WhatsAppManager() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {loading ? (
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        {loading && !instance?.qrCode ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
