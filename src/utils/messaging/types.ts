@@ -1,4 +1,3 @@
-
 /**
  * Messaging Types
  * 
@@ -7,10 +6,9 @@
 
 export interface WhatsAppInstance {
   instanceName: string;
-  status: 'disconnected' | 'connecting' | 'connected';
-  qrCode?: string;
+  status?: 'disconnected' | 'connecting' | 'connected';
   number?: string;
-  webhookUrl?: string;
+  qrCode?: string;
 }
 
 export interface MessageSendResult {
@@ -19,16 +17,18 @@ export interface MessageSendResult {
   message?: string;
 }
 
-export interface InstanceSettingsResult {
+export interface InstanceSettings {
   success: boolean;
   instanceName?: string;
+  status?: string;
+  qrCode?: string;
   message?: string;
 }
 
-export interface QRCodeResult {
+export interface InstanceActionResult {
   success: boolean;
-  qrcode?: string;
   message?: string;
+  instanceName?: string;
 }
 
 export interface ConnectionResult {
@@ -38,22 +38,17 @@ export interface ConnectionResult {
   message?: string;
 }
 
-export interface InstanceActionResult {
+export interface QRCodeResult {
   success: boolean;
+  qrcode?: string;
   message?: string;
 }
 
-// Tipos específicos para a Evolution API
 export interface EvolutionAPIResponse {
-  success: boolean;
+  success?: boolean;
   message?: string;
   error?: string;
-  state?: string;
   qrcode?: string;
+  state?: string;
   number?: string;
-  instance?: string;
-  key?: {
-    id: string;
-    [key: string]: any;
-  };
 }

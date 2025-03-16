@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { messagingUtils } from "@/utils/messaging";
 import { useToast } from "@/components/ui/use-toast";
@@ -189,8 +190,8 @@ export function useInstanceOperations(organizationId: string | undefined) {
     error,
     createInstance,
     connectWhatsApp,
-    disconnectWhatsApp: async () => false, // Implementação completa mantida
-    restartWhatsApp: async () => false, // Implementação completa mantida
+    disconnectWhatsApp,
+    restartWhatsApp,
     setError
   };
 }
