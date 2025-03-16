@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { messagingUtils, WhatsAppInstance } from "@/utils/messagingUtils";
+import { messagingUtils, WhatsAppInstance } from "@/utils/messaging";
 import { useToast } from "@/components/ui/use-toast";
 
 export function useWhatsAppInstance(organizationId: string | undefined) {

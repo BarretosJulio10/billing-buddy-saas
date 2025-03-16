@@ -1,4 +1,3 @@
-
 /**
  * Messaging Cron Utility
  * 
@@ -10,7 +9,7 @@
 import { messageHistoryApi } from '../api/messageHistoryApi';
 import { messagingSettingsApi } from '../api/messagingSettingsApi';
 import { createMessageFromTemplate } from './messageTemplates';
-import { messagingUtils } from './messagingUtils';
+import { messagingUtils } from './messaging';
 
 // Simulated function to run the cron job
 export const runMessagingCron = async (organizationId: string) => {

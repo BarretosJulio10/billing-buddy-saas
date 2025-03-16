@@ -1,10 +1,8 @@
-
 import { Wifi, WifiOff, MessageCircle, MessageCircleOff, Database, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useOrganization } from "@/hooks/useOrganization";
-import { messagingUtils } from "@/utils/messagingUtils";
+import { messagingUtils } from "@/utils/messaging";
 
-// This would normally come from an API
 interface ServiceStatus {
   connected: boolean;
   lastConnection?: string;
@@ -31,12 +29,11 @@ export function SystemStatus() {
     if (organizationId) {
       checkWhatsAppStatus();
       
-      // Set up polling to refresh status every 2 minutes
       const pollingInterval = setInterval(() => {
         if (organizationId) {
           checkWhatsAppStatus();
         }
-      }, 120000); // 2 minutes
+      }, 120000);
 
       return () => clearInterval(pollingInterval);
     }
@@ -47,12 +44,10 @@ export function SystemStatus() {
     
     setLoading(true);
     try {
-      // First get the instance name from settings
       const instanceSettings = await messagingUtils.getWhatsAppInstanceSettings(organizationId);
       console.log("Instance settings in status check:", instanceSettings);
       
       if (instanceSettings.success && instanceSettings.instanceName) {
-        // Check connection status for this instance
         const result = await messagingUtils.checkWhatsAppConnection(instanceSettings.instanceName);
         console.log("WhatsApp connection status:", result);
         
@@ -64,7 +59,6 @@ export function SystemStatus() {
           }
         }));
       } else {
-        // No instance configured
         setStatusData(prev => ({
           ...prev,
           whatsappStatus: {
@@ -94,7 +88,6 @@ export function SystemStatus() {
         {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
       </div>
       
-      {/* WhatsApp Status */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           {statusData.whatsappStatus.connected ? (
@@ -107,7 +100,6 @@ export function SystemStatus() {
         <StatusIndicator connected={statusData.whatsappStatus.connected} color="emerald" />
       </div>
 
-      {/* Telegram Status */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           {statusData.telegramStatus.connected ? (
@@ -120,7 +112,6 @@ export function SystemStatus() {
         <StatusIndicator connected={statusData.telegramStatus.connected} color="blue" />
       </div>
       
-      {/* Database Status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Database className="h-4 w-4 text-blue-500" />
