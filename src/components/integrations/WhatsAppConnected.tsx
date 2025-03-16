@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Check, PhoneOff } from "lucide-react";
-import { WhatsAppInstance } from "@/utils/messagingUtils";
+import { WhatsAppInstance } from "@/utils/messaging";
 
 interface WhatsAppConnectedProps {
   instance: WhatsAppInstance;
